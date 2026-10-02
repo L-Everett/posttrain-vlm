@@ -1,0 +1,32 @@
+# Python
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+
+# Local environment
+.env
+
+# Data & model artifacts (large files)
+data/raw/
+data/processed/
+models/
+saves/
+outputs/
+checkpoints/
+*.pth
+*.safetensors
+
+# Logs & experiment tracking
+*.log
+wandb/
+swanlog/
+
+# Notebooks
+.ipynb_checkpoints/
+
+# OS / editors
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/
