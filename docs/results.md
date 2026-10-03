@@ -1,55 +1,55 @@
-# Experiments & Results
+# 实验与结果
 
-Running log for `posttrain-vlm`. Update after every run.
+`posttrain-vlm` 的实验运行记录，每次跑完更新。
 
-## Environment
+## 环境
 
-| Item | Value |
+| 项目 | 值 |
 | --- | --- |
-| GPU | Single 24 GB (RTX 4090 class) |
-| Base model | `Qwen/Qwen3-VL-4B-Instruct` |
-| Training framework | LLaMA-Factory `TBD` |
+| GPU | 单卡 24 GB（RTX 4090 级） |
+| 基座模型 | `Qwen/Qwen3-VL-4B-Instruct` |
+| 训练框架 | LLaMA-Factory `TBD` |
 | PyTorch / CUDA | `TBD` |
 | transformers | `TBD` |
 
-## Dataset
+## 数据集
 
-| Split | Source | Size | Purpose |
+| 划分 | 来源 | 规模 | 用途 |
 | --- | --- | --- | --- |
-| Train | ChartQA train | 6,000 (subset, expandable) | SFT / DPO |
-| Held-out | ChartQA test | 800 (subset) | fast iteration |
-| Final eval | ChartQA test | full | final numbers |
+| 训练集 | ChartQA train | 6,000（子集，可扩充） | SFT / DPO |
+| 快速验证集 | ChartQA test | 800（子集） | 快速迭代 |
+| 最终评测 | ChartQA test | 全量 | 最终数字 |
 
-**Metric**: relaxed accuracy (5% tolerance) — definition in [`tech-notes.md`](tech-notes.md).
+**指标**：relaxed accuracy（5% 容差），定义见 [`tech-notes.md`](tech-notes.md)。
 
-## Main results
+## 主结果
 
-| # | Stage | ChartQA test (relaxed acc) | Notes |
+| # | 阶段 | ChartQA test（relaxed acc） | 备注 |
 | --- | --- | --- | --- |
-| 1 | Zero-shot baseline | TBD | |
-| 2 | LoRA SFT round 1 | TBD | |
-| 3 | SFT round 2 (data flywheel) | TBD | |
+| 1 | Zero-shot 基线 | TBD | |
+| 2 | LoRA SFT 第一轮 | TBD | |
+| 3 | SFT 第二轮（数据飞轮） | TBD | |
 | 4 | + DPO | TBD | |
 
-## Ablation
+## 消融实验
 
-| Variable | Values | Result | Notes |
+| 变量 | 取值 | 结果 | 备注 |
 | --- | --- | --- | --- |
 | LoRA rank | 8 / 32 | TBD | |
 
-## Cost log
+## 成本记录
 
-| Run | GPU | Wall time | Approx. cost | Notes |
+| 运行 | GPU | 耗时 | 约成本 | 备注 |
 | --- | --- | --- | --- | --- |
-| Environment smoke test | TBD | TBD | TBD | |
-| SFT round 1 | TBD | TBD | TBD | |
-| SFT round 2 | TBD | TBD | TBD | |
+| 环境冒烟测试 | TBD | TBD | TBD | |
+| SFT 第一轮 | TBD | TBD | TBD | |
+| SFT 第二轮 | TBD | TBD | TBD | |
 | DPO | TBD | TBD | TBD | |
 
-## Failure cases
+## 失败案例
 
-_To be filled during error analysis: representative wrong predictions, suspected causes, and the targeted data added in response._
+_错误分析阶段填写：代表性的错误预测、疑似原因、以及针对性补充的数据。_
 
-## Notes / decisions
+## 备注 / 决策
 
-- Record every config change and the reason behind it.
+- 每一次配置改动都要记录，并写清改动原因。

@@ -1,73 +1,73 @@
 # posttrain-vlm
 
-**A reproducible domain post-training pipeline for Vision-Language Models — LoRA SFT, data flywheel, and DPO preference alignment, demonstrated on ChartQA with Qwen3-VL-4B.**
+**可复现的视觉语言模型（VLM）领域后训练全流程 —— LoRA SFT、数据飞轮、DPO 偏好对齐，以 Qwen3-VL-4B + ChartQA 为例完整演示。**
 
-## Overview
+## 项目简介
 
-General-purpose VLMs are strong zero-shot, but domain performance often improves substantially after targeted post-training. This project builds a small, fully reproducible pipeline that adapts `Qwen/Qwen3-VL-4B-Instruct` to **chart question answering** (ChartQA) and measures every stage on a held-out split:
+通用 VLM 的 zero-shot 能力已经很强，但针对特定领域做后训练，通常还能再涨一大截。本项目搭一条小而全、完全可复现的流程，把 `Qwen/Qwen3-VL-4B-Instruct` 适配到**图表问答**（ChartQA）任务，并在留出的测试集上对每个阶段做量化评测：
 
-1. **LoRA SFT** — supervised fine-tuning on domain instruction data
-2. **Data flywheel** — error analysis on the SFT model, targeted data augmentation, second SFT round
-3. **DPO** — preference pairs built by rejection sampling from the SFT model, aligned with Direct Preference Optimization
-4. **Serving** — LoRA merged into the base model, served with vLLM behind a simple Gradio demo
+1. **LoRA SFT** —— 用领域指令数据做监督微调
+2. **数据飞轮** —— 对 SFT 模型做错误分析 → 针对性补数据 → 第二轮 SFT
+3. **DPO** —— 用拒绝采样从 SFT 模型构造偏好对，做 Direct Preference Optimization 对齐
+4. **部署** —— LoRA 合并回基座，vLLM 起服务 + Gradio 简单 demo
 
-## Pipeline
+## 流程图
 
 ```mermaid
 flowchart LR
-  A[ChartQA raw data] --> B[Processing + splits]
-  B --> C[Zero-shot baseline eval]
+  A[ChartQA 原始数据] --> B[清洗 + 划分]
+  B --> C[Zero-shot 基线评测]
   C --> D[LoRA SFT]
-  D --> E[Eval + error analysis]
-  E --> F[Targeted data augmentation]
-  F --> G[SFT round 2]
-  G --> H[Preference pair construction<br/>rejection sampling]
-  H --> I[DPO alignment]
-  I --> J[Final eval + ablation]
-  J --> K[LoRA merge]
-  K --> L[vLLM serving]
-  L --> M[Gradio demo]
+  D --> E[评测 + 错误分析]
+  E --> F[针对性数据增强]
+  F --> G[SFT 第二轮]
+  G --> H[构造偏好对<br/>拒绝采样]
+  H --> I[DPO 对齐]
+  I --> J[最终评测 + 消融]
+  J --> K[LoRA 合并]
+  K --> L[vLLM 服务]
+  L --> M[Gradio Demo]
 ```
 
-## Results
+## 结果
 
-Relaxed accuracy (5% tolerance) on the ChartQA test split. Detailed tables, ablation, and the failure-case analysis live in [`docs/results.md`](docs/results.md).
+ChartQA 测试集上的 relaxed accuracy（5% 容差）。详细表格、消融实验和失败案例分析见 [`docs/results.md`](docs/results.md)。
 
-| Stage | Relaxed Accuracy |
+| 阶段 | Relaxed Accuracy |
 | --- | --- |
-| Qwen3-VL-4B-Instruct (zero-shot) | TBD |
+| Qwen3-VL-4B-Instruct（zero-shot） | TBD |
 | + LoRA SFT | TBD |
-| + Data flywheel (SFT round 2) | TBD |
+| + 数据飞轮（SFT 第二轮） | TBD |
 | + DPO | TBD |
 
-> Training is in progress; numbers are filled in as runs complete.
+> 训练进行中，数字随每轮实验完成而更新。
 
-## Repository layout
+## 目录结构
 
 ```
 posttrain-vlm/
-├── configs/   # Training configs (LoRA SFT, DPO, merge)
-├── data/      # Dataset preparation scripts and registries
-├── eval/      # Evaluation harness and metrics
-├── scripts/   # End-to-end pipeline scripts
-├── serving/   # vLLM launch script and Gradio demo
-└── docs/      # Results log and technical notes
+├── configs/   # 训练配置（LoRA SFT、DPO、merge）
+├── data/      # 数据准备脚本与数据集注册
+├── eval/      # 评测脚本与指标
+├── scripts/   # 端到端流程脚本
+├── serving/   # vLLM 启动脚本与 Gradio demo
+└── docs/      # 实验记录与技术笔记
 ```
 
-## Hardware & cost
+## 硬件与成本
 
-All experiments are designed to run on a **single 24 GB GPU** (RTX 4090 class). Wall-clock time and cost per run are logged in [`docs/results.md`](docs/results.md).
+所有实验都按**单张 24 GB 显卡**（RTX 4090 级）设计。每轮训练的 wall-clock 时间与成本记录在 [`docs/results.md`](docs/results.md)。
 
-## Status
+## 状态
 
-Work in progress — data processing, training configs, evaluation harness, and serving code are being added step by step.
+开发中 —— 数据处理、训练配置、评测脚本和部署代码会逐步补全。
 
-## Acknowledgements
+## 致谢
 
-- [LLaMA-Factory](https://github.com/hiyouga/LLaMA-Factory) — unified fine-tuning framework (Apache-2.0)
-- [Qwen3-VL](https://github.com/QwenLM/Qwen3-VL) — base vision-language model (Apache-2.0)
-- [ChartQA](https://github.com/vis-nlp/ChartQA) — chart question answering benchmark (see the original repository for licensing)
+- [LLaMA-Factory](https://github.com/hiyouga/LLaMA-Factory) —— 统一微调框架（Apache-2.0）
+- [Qwen3-VL](https://github.com/QwenLM/Qwen3-VL) —— 基座视觉语言模型（Apache-2.0）
+- [ChartQA](https://github.com/vis-nlp/ChartQA) —— 图表问答基准（许可证见原仓库）
 
 ## License
 
-Apache-2.0 — see [LICENSE](LICENSE).
+Apache-2.0 —— 见 [LICENSE](LICENSE)。

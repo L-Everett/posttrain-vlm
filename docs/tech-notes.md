@@ -1,73 +1,73 @@
-# Technical Notes
+# 技术笔记
 
-Design notes and FAQ for `posttrain-vlm`. Each entry captures a decision, why it was made, and the underlying mechanism.
+`posttrain-vlm` 的设计笔记与 FAQ。每条记录一个决策：为什么这么做、背后的机制是什么。
 
-## 1. Why LoRA instead of full fine-tuning?
+## 1. 为什么用 LoRA 而不是全参微调？
 
-- Full fine-tuning a 4B VLM needs well over 80 GB of GPU memory (weights + gradients + optimizer states in bf16); LoRA trains less than 1–2% of parameters and fits a 24 GB card.
-- For domain adaptation on thousands of samples, LoRA quality is close to full fine-tuning while producing a small adapter artifact (tens to hundreds of MB) that is trivial to version and merge.
-- Fewer trainable parameters also reduce overfitting risk on a narrow domain.
+- 全参微调一个 4B VLM 需要远超 80 GB 显存（bf16 下的权重 + 梯度 + 优化器状态）；LoRA 只训练不到 1~2% 的参数，24 GB 的卡就能跑。
+- 在几千条样本的领域适配场景下，LoRA 的效果接近全参微调，而且产物是一个几十到几百 MB 的 adapter，版本管理和合并都很轻松。
+- 可训练参数少，在窄领域上也不容易过拟合。
 
-## 2. What do rank and alpha control?
+## 2. rank 和 alpha 控制什么？
 
-- `r` (rank) is the dimension of the low-rank update `ΔW = B·A`. Larger `r` means more capacity and more adapter parameters.
-- `alpha` scales the update: the effective scaling is `alpha / r` when merging. Common practice is `alpha = 2r`.
-- For domain adaptation with thousands of samples, `r = 8–32` is usually sufficient; `r = 16` is the default here.
+- `r`（rank）是低秩更新 $\Delta W = B \cdot A$ 的维度。`r` 越大容量越大，adapter 参数也越多。
+- `alpha` 控制更新的缩放：合并时有效缩放系数是 `alpha / r`，常用做法是 `alpha = 2r`。
+- 几千条样本的领域适配，`r = 8~32` 通常够用；本项目默认 `r = 16`。
 
-## 3. What does a multimodal SFT sample look like?
+## 3. 一条多模态 SFT 样本长什么样？
 
-- ShareGPT-style records: a `messages` list of `{role, content}` turns plus an `images` field with image paths.
-- The content contains an `<image>` placeholder where the vision tokens are inserted by the chat template.
-- Dataset registration maps a dataset name to its file and format so the training config can reference it.
+- ShareGPT 格式：一个 `messages` 列表（`{role, content}` 多轮对话）加一个 `images` 字段（图片路径列表）。
+- content 里用 `<image>` 占位符标记视觉 token 的插入位置，由 chat template 处理。
+- 数据集注册（dataset registry）把数据集名字映射到文件和格式，训练配置里直接引用名字即可。
 
-## 4. Why must the chat template match between training and inference?
+## 4. 为什么训练和推理的 chat template 必须一致？
 
-- Special tokens delimit turns and image placeholders. If training and inference use different templates, token positions shift and the model sees a distribution it was not trained on.
-- Symptom of a mismatch: fluent but irrelevant answers, or the model echoing the prompt format.
+- 特殊 token 负责分隔对话轮次和图片占位符。训练和推理用了不同的 template，token 位置就会错位，模型看到的分布和训练时不一样。
+- 典型的错配症状：回答很流畅但答非所问，或者原样复读 prompt 格式。
 
-## 5. Why relaxed accuracy for ChartQA?
+## 5. ChartQA 为什么用 relaxed accuracy？
 
-- Chart answers may legitimately be written as `17.5`, `17.50`, or `17.5%`. Exact string match unfairly penalizes these.
-- Relaxed accuracy counts a prediction as correct when it is within 5% relative tolerance of the reference value (the standard ChartQA metric).
-- Implementation detail: parse the first number from the generated text, then compare numerically.
+- 同一个答案可以合法地写成 `17.5`、`17.50` 或 `17.5%`，严格字符串匹配会冤枉模型。
+- Relaxed accuracy 在预测值与参考答案的相对误差在 5% 以内时判对（ChartQA 的标准指标）。
+- 实现细节：从生成文本里解析出第一个数字，再做数值比较。
 
-## 6. Why build preference pairs by rejection sampling?
+## 6. 为什么用拒绝采样构造偏好对？
 
-- The task has ground-truth answers, so the SFT model can be sampled on training prompts; wrong generations become the `rejected` side and the ground truth is the `chosen` side.
-- This produces domain-specific preference pairs without human annotation and is far cheaper than general-purpose preference datasets.
-- It also directly targets the model's actual failure modes instead of generic style preferences.
+- 这个任务有标准答案，所以可以让 SFT 模型对训练 prompt 采样：生成错的作为 `rejected`，标准答案作为 `chosen`。
+- 不需要人工标注就能得到领域内偏好对，比通用偏好数据集便宜得多。
+- 而且它直接打在模型的真实失败模式上，而不是泛泛的风格偏好。
 
-## 7. How does DPO work, and how is it different from PPO?
+## 7. DPO 是怎么工作的？和 PPO 有什么区别？
 
-- DPO optimizes a closed-form loss directly on preference pairs. The implicit reward compares the policy's log-probability ratio against a frozen reference model for chosen vs rejected responses.
-- `beta` controls how far the policy may drift from the reference; a typical value here is `0.1`.
-- PPO requires training a separate reward model and running an online RL loop — more moving parts and harder to stabilize. With static, verifiable preference pairs, DPO is the simpler and more reliable choice.
+- DPO 直接在偏好对上优化一个闭式损失：隐式 reward 比较的是策略模型相对冻结参考模型在 chosen 与 rejected 上的对数概率比。
+- `beta` 控制策略允许偏离参考模型多远，本项目典型取值 `0.1`。
+- PPO 要额外训练一个 reward model 并跑在线 RL 循环——环节多、不稳定因素也多。面对静态、可验证的偏好对，DPO 更简单也更可靠。
 
-## 8. What is the "data flywheel" in this project?
+## 8. 本项目的"数据飞轮"是什么？
 
-- Evaluate → categorize errors → add targeted training data → retrain → re-evaluate.
-- The point is that evaluation output is not just a number; it becomes the next batch of training data.
-- Round 2 SFT uses data augmented around the dominant error categories found in round 1.
+- 评测 → 错误归类 → 针对性补训练数据 → 重训 → 再评测。
+- 关键在于：评测产出不只是一个数字，它变成下一批训练数据。
+- 第二轮 SFT 的数据围绕第一轮暴露的主要错误类别做增强。
 
-## 9. Why merge LoRA before serving?
+## 9. 为什么部署前要合并 LoRA？
 
-- Merging computes `W' = W + B·A` exactly, removing adapter dispatch overhead and producing a standard checkpoint.
-- The merged model works with any inference stack (vLLM, TensorRT-LLM, llama.cpp) without adapter support.
-- The adapter remains in the repo for reproducibility; the merged checkpoint is a build artifact.
+- 合并计算 `W' = W + B·A`，是精确的数学等价变换，去掉 adapter 的加载/分发开销，产出一个标准 checkpoint。
+- 合并后的模型能直接用任何推理栈（vLLM、TensorRT-LLM、llama.cpp），不需要 adapter 支持。
+- adapter 留在仓库里保证可复现，合并产物只是一个构建输出。
 
-## 10. Why vLLM for serving and evaluation?
+## 10. 为什么服务和评测都用 vLLM？
 
-- PagedAttention manages the KV cache in blocks, and continuous batching keeps the GPU busy across requests — both matter for batch evaluation and for the demo.
-- Serving through an OpenAI-compatible endpoint keeps the Gradio demo decoupled from the model process.
+- PagedAttention 按块管理 KV Cache，continuous batching 让 GPU 在多请求间保持忙碌——批量评测和 demo 都需要这两点。
+- 通过 OpenAI 兼容接口对外服务，Gradio demo 和模型进程解耦。
 
-## 11. Catastrophic forgetting — what to watch?
+## 11. 灾难性遗忘——要盯什么？
 
-- A VLM fine-tuned on a narrow domain can lose general abilities (OCR, scene understanding, instruction following).
-- Mitigations: keep epochs low, use a modest LoRA rank, and spot-check general capabilities before and after training.
-- If degradation appears, mix a small amount of general instruction data into the SFT set.
+- 在窄领域微调过的 VLM 可能丢失通用能力（OCR、场景理解、指令跟随）。
+- 缓解手段：epoch 保持低、LoRA rank 别太大、训练前后抽查通用能力。
+- 如果发现有退化，就往 SFT 数据里掺少量通用指令数据。
 
-## 12. Why cap image resolution / visual tokens?
+## 12. 为什么要限制图片分辨率 / 视觉 token 数？
 
-- Visual tokens dominate sequence length: a high-resolution image can contribute thousands of tokens, and activation memory scales with sequence length.
-- Capping the visual token budget (roughly 256–1280 per image) keeps larger batch sizes feasible on 24 GB with a small accuracy cost.
-- The cap is controlled by pixel limits in the image processor and must be consistent between training and evaluation.
+- 视觉 token 占序列长度的大头：一张高分辨率图能贡献几千个 token，而激活显存随序列长度增长。
+- 给视觉 token 预算设上限（大约每张图 256~1280），只损失一点精度就能在 24 GB 上跑更大的 batch。
+- 上限由 image processor 的像素限制控制，训练和评测必须保持一致。
