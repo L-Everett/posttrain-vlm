@@ -65,3 +65,4 @@ _错误分析阶段填写：代表性的错误预测、疑似原因、以及针�
 - [2026-10-03] 坑2：LF 0.9.5 移除了 `image_resolution` 参数，视觉输入上限改用 `image_max_pixels` / `image_min_pixels`（在 model_args，直接放 yaml 顶层即可）。
 - [2026-10-03] 坑3：非交互 SSH 不加载 .bashrc，远程跑命令要先 `source /root/miniconda3/etc/profile.d/conda.sh && conda activate base`。
 - [2026-10-03] 长任务用 `nohup` 脱离 SSH 会话跑 + 轮询日志，避免本地超时掐断训练。
+- [2026-10-03] 远程 git 直连 GitHub 会 TLS 中断，fetch/push 前 `source /etc/network_turbo`（AutoDL 学术加速，用完 `unset http_proxy https_proxy`，否则 pip 会变慢）。
