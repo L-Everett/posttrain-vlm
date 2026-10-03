@@ -1,0 +1,902 @@
+[
+  {
+    "messages": [
+      {
+        "role": "user",
+        "content": "<image>\nWhat is the value of Q2? Answer with the value only."
+      },
+      {
+        "role": "assistant",
+        "content": "13"
+      }
+    ],
+    "images": [
+      "images/chart_000.png"
+    ]
+  },
+  {
+    "messages": [
+      {
+        "role": "user",
+        "content": "<image>\nWhich quarter has the highest sales? Answer with the value only."
+      },
+      {
+        "role": "assistant",
+        "content": "Q3"
+      }
+    ],
+    "images": [
+      "images/chart_000.png"
+    ]
+  },
+  {
+    "messages": [
+      {
+        "role": "user",
+        "content": "<image>\nWhat is the value of Q1? Answer with the value only."
+      },
+      {
+        "role": "assistant",
+        "content": "24"
+      }
+    ],
+    "images": [
+      "images/chart_000.png"
+    ]
+  },
+  {
+    "messages": [
+      {
+        "role": "user",
+        "content": "<image>\nWhat is the value of Q4? Answer with the value only."
+      },
+      {
+        "role": "assistant",
+        "content": "85"
+      }
+    ],
+    "images": [
+      "images/chart_001.png"
+    ]
+  },
+  {
+    "messages": [
+      {
+        "role": "user",
+        "content": "<image>\nWhich quarter has the highest sales? Answer with the value only."
+      },
+      {
+        "role": "assistant",
+        "content": "Q4"
+      }
+    ],
+    "images": [
+      "images/chart_001.png"
+    ]
+  },
+  {
+    "messages": [
+      {
+        "role": "user",
+        "content": "<image>\nWhat is the value of Q1? Answer with the value only."
+      },
+      {
+        "role": "assistant",
+        "content": "23"
+      }
+    ],
+    "images": [
+      "images/chart_001.png"
+    ]
+  },
+  {
+    "messages": [
+      {
+        "role": "user",
+        "content": "<image>\nWhat is the value of Q1? Answer with the value only."
+      },
+      {
+        "role": "assistant",
+        "content": "13"
+      }
+    ],
+    "images": [
+      "images/chart_002.png"
+    ]
+  },
+  {
+    "messages": [
+      {
+        "role": "user",
+        "content": "<image>\nWhich quarter has the highest sales? Answer with the value only."
+      },
+      {
+        "role": "assistant",
+        "content": "Q4"
+      }
+    ],
+    "images": [
+      "images/chart_002.png"
+    ]
+  },
+  {
+    "messages": [
+      {
+        "role": "user",
+        "content": "<image>\nWhat is the value of Q4? Answer with the value only."
+      },
+      {
+        "role": "assistant",
+        "content": "39"
+      }
+    ],
+    "images": [
+      "images/chart_002.png"
+    ]
+  },
+  {
+    "messages": [
+      {
+        "role": "user",
+        "content": "<image>\nWhat is the value of Q4? Answer with the value only."
+      },
+      {
+        "role": "assistant",
+        "content": "38"
+      }
+    ],
+    "images": [
+      "images/chart_003.png"
+    ]
+  },
+  {
+    "messages": [
+      {
+        "role": "user",
+        "content": "<image>\nWhich quarter has the highest sales? Answer with the value only."
+      },
+      {
+        "role": "assistant",
+        "content": "Q2"
+      }
+    ],
+    "images": [
+      "images/chart_003.png"
+    ]
+  },
+  {
+    "messages": [
+      {
+        "role": "user",
+        "content": "<image>\nWhat is the value of Q3? Answer with the value only."
+      },
+      {
+        "role": "assistant",
+        "content": "63"
+      }
+    ],
+    "images": [
+      "images/chart_003.png"
+    ]
+  },
+  {
+    "messages": [
+      {
+        "role": "user",
+        "content": "<image>\nWhat is the value of Q3? Answer with the value only."
+      },
+      {
+        "role": "assistant",
+        "content": "30"
+      }
+    ],
+    "images": [
+      "images/chart_004.png"
+    ]
+  },
+  {
+    "messages": [
+      {
+        "role": "user",
+        "content": "<image>\nWhich quarter has the highest sales? Answer with the value only."
+      },
+      {
+        "role": "assistant",
+        "content": "Q4"
+      }
+    ],
+    "images": [
+      "images/chart_004.png"
+    ]
+  },
+  {
+    "messages": [
+      {
+        "role": "user",
+        "content": "<image>\nWhat is the value of Q2? Answer with the value only."
+      },
+      {
+        "role": "assistant",
+        "content": "10"
+      }
+    ],
+    "images": [
+      "images/chart_004.png"
+    ]
+  },
+  {
+    "messages": [
+      {
+        "role": "user",
+        "content": "<image>\nWhat is the value of Q1? Answer with the value only."
+      },
+      {
+        "role": "assistant",
+        "content": "29"
+      }
+    ],
+    "images": [
+      "images/chart_005.png"
+    ]
+  },
+  {
+    "messages": [
+      {
+        "role": "user",
+        "content": "<image>\nWhich quarter has the highest sales? Answer with the value only."
+      },
+      {
+        "role": "assistant",
+        "content": "Q3"
+      }
+    ],
+    "images": [
+      "images/chart_005.png"
+    ]
+  },
+  {
+    "messages": [
+      {
+        "role": "user",
+        "content": "<image>\nWhat is the value of Q3? Answer with the value only."
+      },
+      {
+        "role": "assistant",
+        "content": "53"
+      }
+    ],
+    "images": [
+      "images/chart_005.png"
+    ]
+  },
+  {
+    "messages": [
+      {
+        "role": "user",
+        "content": "<image>\nWhat is the value of Q3? Answer with the value only."
+      },
+      {
+        "role": "assistant",
+        "content": "54"
+      }
+    ],
+    "images": [
+      "images/chart_006.png"
+    ]
+  },
+  {
+    "messages": [
+      {
+        "role": "user",
+        "content": "<image>\nWhich quarter has the highest sales? Answer with the value only."
+      },
+      {
+        "role": "assistant",
+        "content": "Q4"
+      }
+    ],
+    "images": [
+      "images/chart_006.png"
+    ]
+  },
+  {
+    "messages": [
+      {
+        "role": "user",
+        "content": "<image>\nWhat is the value of Q1? Answer with the value only."
+      },
+      {
+        "role": "assistant",
+        "content": "22"
+      }
+    ],
+    "images": [
+      "images/chart_006.png"
+    ]
+  },
+  {
+    "messages": [
+      {
+        "role": "user",
+        "content": "<image>\nWhat is the value of Q1? Answer with the value only."
+      },
+      {
+        "role": "assistant",
+        "content": "68"
+      }
+    ],
+    "images": [
+      "images/chart_007.png"
+    ]
+  },
+  {
+    "messages": [
+      {
+        "role": "user",
+        "content": "<image>\nWhich quarter has the highest sales? Answer with the value only."
+      },
+      {
+        "role": "assistant",
+        "content": "Q2"
+      }
+    ],
+    "images": [
+      "images/chart_007.png"
+    ]
+  },
+  {
+    "messages": [
+      {
+        "role": "user",
+        "content": "<image>\nWhat is the value of Q4? Answer with the value only."
+      },
+      {
+        "role": "assistant",
+        "content": "58"
+      }
+    ],
+    "images": [
+      "images/chart_007.png"
+    ]
+  },
+  {
+    "messages": [
+      {
+        "role": "user",
+        "content": "<image>\nWhat is the value of Q2? Answer with the value only."
+      },
+      {
+        "role": "assistant",
+        "content": "90"
+      }
+    ],
+    "images": [
+      "images/chart_008.png"
+    ]
+  },
+  {
+    "messages": [
+      {
+        "role": "user",
+        "content": "<image>\nWhich quarter has the highest sales? Answer with the value only."
+      },
+      {
+        "role": "assistant",
+        "content": "Q2"
+      }
+    ],
+    "images": [
+      "images/chart_008.png"
+    ]
+  },
+  {
+    "messages": [
+      {
+        "role": "user",
+        "content": "<image>\nWhat is the value of Q4? Answer with the value only."
+      },
+      {
+        "role": "assistant",
+        "content": "56"
+      }
+    ],
+    "images": [
+      "images/chart_008.png"
+    ]
+  },
+  {
+    "messages": [
+      {
+        "role": "user",
+        "content": "<image>\nWhat is the value of Q1? Answer with the value only."
+      },
+      {
+        "role": "assistant",
+        "content": "18"
+      }
+    ],
+    "images": [
+      "images/chart_009.png"
+    ]
+  },
+  {
+    "messages": [
+      {
+        "role": "user",
+        "content": "<image>\nWhich quarter has the highest sales? Answer with the value only."
+      },
+      {
+        "role": "assistant",
+        "content": "Q4"
+      }
+    ],
+    "images": [
+      "images/chart_009.png"
+    ]
+  },
+  {
+    "messages": [
+      {
+        "role": "user",
+        "content": "<image>\nWhat is the value of Q2? Answer with the value only."
+      },
+      {
+        "role": "assistant",
+        "content": "15"
+      }
+    ],
+    "images": [
+      "images/chart_009.png"
+    ]
+  },
+  {
+    "messages": [
+      {
+        "role": "user",
+        "content": "<image>\nWhat is the value of Q3? Answer with the value only."
+      },
+      {
+        "role": "assistant",
+        "content": "45"
+      }
+    ],
+    "images": [
+      "images/chart_010.png"
+    ]
+  },
+  {
+    "messages": [
+      {
+        "role": "user",
+        "content": "<image>\nWhich quarter has the highest sales? Answer with the value only."
+      },
+      {
+        "role": "assistant",
+        "content": "Q4"
+      }
+    ],
+    "images": [
+      "images/chart_010.png"
+    ]
+  },
+  {
+    "messages": [
+      {
+        "role": "user",
+        "content": "<image>\nWhat is the value of Q1? Answer with the value only."
+      },
+      {
+        "role": "assistant",
+        "content": "22"
+      }
+    ],
+    "images": [
+      "images/chart_010.png"
+    ]
+  },
+  {
+    "messages": [
+      {
+        "role": "user",
+        "content": "<image>\nWhat is the value of Q1? Answer with the value only."
+      },
+      {
+        "role": "assistant",
+        "content": "57"
+      }
+    ],
+    "images": [
+      "images/chart_011.png"
+    ]
+  },
+  {
+    "messages": [
+      {
+        "role": "user",
+        "content": "<image>\nWhich quarter has the highest sales? Answer with the value only."
+      },
+      {
+        "role": "assistant",
+        "content": "Q1"
+      }
+    ],
+    "images": [
+      "images/chart_011.png"
+    ]
+  },
+  {
+    "messages": [
+      {
+        "role": "user",
+        "content": "<image>\nWhat is the value of Q4? Answer with the value only."
+      },
+      {
+        "role": "assistant",
+        "content": "44"
+      }
+    ],
+    "images": [
+      "images/chart_011.png"
+    ]
+  },
+  {
+    "messages": [
+      {
+        "role": "user",
+        "content": "<image>\nWhat is the value of Q4? Answer with the value only."
+      },
+      {
+        "role": "assistant",
+        "content": "30"
+      }
+    ],
+    "images": [
+      "images/chart_012.png"
+    ]
+  },
+  {
+    "messages": [
+      {
+        "role": "user",
+        "content": "<image>\nWhich quarter has the highest sales? Answer with the value only."
+      },
+      {
+        "role": "assistant",
+        "content": "Q2"
+      }
+    ],
+    "images": [
+      "images/chart_012.png"
+    ]
+  },
+  {
+    "messages": [
+      {
+        "role": "user",
+        "content": "<image>\nWhat is the value of Q2? Answer with the value only."
+      },
+      {
+        "role": "assistant",
+        "content": "78"
+      }
+    ],
+    "images": [
+      "images/chart_012.png"
+    ]
+  },
+  {
+    "messages": [
+      {
+        "role": "user",
+        "content": "<image>\nWhat is the value of Q1? Answer with the value only."
+      },
+      {
+        "role": "assistant",
+        "content": "44"
+      }
+    ],
+    "images": [
+      "images/chart_013.png"
+    ]
+  },
+  {
+    "messages": [
+      {
+        "role": "user",
+        "content": "<image>\nWhich quarter has the highest sales? Answer with the value only."
+      },
+      {
+        "role": "assistant",
+        "content": "Q2"
+      }
+    ],
+    "images": [
+      "images/chart_013.png"
+    ]
+  },
+  {
+    "messages": [
+      {
+        "role": "user",
+        "content": "<image>\nWhat is the value of Q2? Answer with the value only."
+      },
+      {
+        "role": "assistant",
+        "content": "81"
+      }
+    ],
+    "images": [
+      "images/chart_013.png"
+    ]
+  },
+  {
+    "messages": [
+      {
+        "role": "user",
+        "content": "<image>\nWhat is the value of Q1? Answer with the value only."
+      },
+      {
+        "role": "assistant",
+        "content": "14"
+      }
+    ],
+    "images": [
+      "images/chart_014.png"
+    ]
+  },
+  {
+    "messages": [
+      {
+        "role": "user",
+        "content": "<image>\nWhich quarter has the highest sales? Answer with the value only."
+      },
+      {
+        "role": "assistant",
+        "content": "Q3"
+      }
+    ],
+    "images": [
+      "images/chart_014.png"
+    ]
+  },
+  {
+    "messages": [
+      {
+        "role": "user",
+        "content": "<image>\nWhat is the value of Q2? Answer with the value only."
+      },
+      {
+        "role": "assistant",
+        "content": "50"
+      }
+    ],
+    "images": [
+      "images/chart_014.png"
+    ]
+  },
+  {
+    "messages": [
+      {
+        "role": "user",
+        "content": "<image>\nWhat is the value of Q4? Answer with the value only."
+      },
+      {
+        "role": "assistant",
+        "content": "73"
+      }
+    ],
+    "images": [
+      "images/chart_015.png"
+    ]
+  },
+  {
+    "messages": [
+      {
+        "role": "user",
+        "content": "<image>\nWhich quarter has the highest sales? Answer with the value only."
+      },
+      {
+        "role": "assistant",
+        "content": "Q1"
+      }
+    ],
+    "images": [
+      "images/chart_015.png"
+    ]
+  },
+  {
+    "messages": [
+      {
+        "role": "user",
+        "content": "<image>\nWhat is the value of Q3? Answer with the value only."
+      },
+      {
+        "role": "assistant",
+        "content": "37"
+      }
+    ],
+    "images": [
+      "images/chart_015.png"
+    ]
+  },
+  {
+    "messages": [
+      {
+        "role": "user",
+        "content": "<image>\nWhat is the value of Q2? Answer with the value only."
+      },
+      {
+        "role": "assistant",
+        "content": "28"
+      }
+    ],
+    "images": [
+      "images/chart_016.png"
+    ]
+  },
+  {
+    "messages": [
+      {
+        "role": "user",
+        "content": "<image>\nWhich quarter has the highest sales? Answer with the value only."
+      },
+      {
+        "role": "assistant",
+        "content": "Q1"
+      }
+    ],
+    "images": [
+      "images/chart_016.png"
+    ]
+  },
+  {
+    "messages": [
+      {
+        "role": "user",
+        "content": "<image>\nWhat is the value of Q4? Answer with the value only."
+      },
+      {
+        "role": "assistant",
+        "content": "27"
+      }
+    ],
+    "images": [
+      "images/chart_016.png"
+    ]
+  },
+  {
+    "messages": [
+      {
+        "role": "user",
+        "content": "<image>\nWhat is the value of Q4? Answer with the value only."
+      },
+      {
+        "role": "assistant",
+        "content": "84"
+      }
+    ],
+    "images": [
+      "images/chart_017.png"
+    ]
+  },
+  {
+    "messages": [
+      {
+        "role": "user",
+        "content": "<image>\nWhich quarter has the highest sales? Answer with the value only."
+      },
+      {
+        "role": "assistant",
+        "content": "Q4"
+      }
+    ],
+    "images": [
+      "images/chart_017.png"
+    ]
+  },
+  {
+    "messages": [
+      {
+        "role": "user",
+        "content": "<image>\nWhat is the value of Q3? Answer with the value only."
+      },
+      {
+        "role": "assistant",
+        "content": "43"
+      }
+    ],
+    "images": [
+      "images/chart_017.png"
+    ]
+  },
+  {
+    "messages": [
+      {
+        "role": "user",
+        "content": "<image>\nWhat is the value of Q4? Answer with the value only."
+      },
+      {
+        "role": "assistant",
+        "content": "27"
+      }
+    ],
+    "images": [
+      "images/chart_018.png"
+    ]
+  },
+  {
+    "messages": [
+      {
+        "role": "user",
+        "content": "<image>\nWhich quarter has the highest sales? Answer with the value only."
+      },
+      {
+        "role": "assistant",
+        "content": "Q1"
+      }
+    ],
+    "images": [
+      "images/chart_018.png"
+    ]
+  },
+  {
+    "messages": [
+      {
+        "role": "user",
+        "content": "<image>\nWhat is the value of Q1? Answer with the value only."
+      },
+      {
+        "role": "assistant",
+        "content": "61"
+      }
+    ],
+    "images": [
+      "images/chart_018.png"
+    ]
+  },
+  {
+    "messages": [
+      {
+        "role": "user",
+        "content": "<image>\nWhat is the value of Q2? Answer with the value only."
+      },
+      {
+        "role": "assistant",
+        "content": "24"
+      }
+    ],
+    "images": [
+      "images/chart_019.png"
+    ]
+  },
+  {
+    "messages": [
+      {
+        "role": "user",
+        "content": "<image>\nWhich quarter has the highest sales? Answer with the value only."
+      },
+      {
+        "role": "assistant",
+        "content": "Q4"
+      }
+    ],
+    "images": [
+      "images/chart_019.png"
+    ]
+  },
+  {
+    "messages": [
+      {
+        "role": "user",
+        "content": "<image>\nWhat is the value of Q4? Answer with the value only."
+      },
+      {
+        "role": "assistant",
+        "content": "90"
+      }
+    ],
+    "images": [
+      "images/chart_019.png"
+    ]
+  }
+]
