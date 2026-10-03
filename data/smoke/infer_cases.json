@@ -1,26 +1,26 @@
 [
   {
-    "image": "D:\\Desktop\\向着星辰大海\\星海征途\\posttrain-vlm\\data\\smoke\\images\\chart_000.png",
+    "image": "images/chart_000.png",
     "question": "What is the value of Q2?",
     "answer": "13"
   },
   {
-    "image": "D:\\Desktop\\向着星辰大海\\星海征途\\posttrain-vlm\\data\\smoke\\images\\chart_001.png",
+    "image": "images/chart_001.png",
     "question": "What is the value of Q4?",
     "answer": "85"
   },
   {
-    "image": "D:\\Desktop\\向着星辰大海\\星海征途\\posttrain-vlm\\data\\smoke\\images\\chart_002.png",
+    "image": "images/chart_002.png",
     "question": "What is the value of Q1?",
     "answer": "13"
   },
   {
-    "image": "D:\\Desktop\\向着星辰大海\\星海征途\\posttrain-vlm\\data\\smoke\\images\\chart_003.png",
+    "image": "images/chart_003.png",
     "question": "What is the value of Q4?",
     "answer": "38"
   },
   {
-    "image": "D:\\Desktop\\向着星辰大海\\星海征途\\posttrain-vlm\\data\\smoke\\images\\chart_004.png",
+    "image": "images/chart_004.png",
     "question": "What is the value of Q3?",
     "answer": "30"
   }

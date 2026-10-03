@@ -44,7 +44,7 @@ for i in range(20):
             "images": [f"images/{img_path.name}"],
         })
     if i < 5:
-        infer_cases.append({"image": str(img_path), "question": questions[0][0], "answer": questions[0][1]})
+        infer_cases.append({"image": f"images/{img_path.name}", "question": questions[0][0], "answer": questions[0][1]})
 
 (OUT / "train.json").write_text(json.dumps(train_samples, ensure_ascii=False, indent=2), encoding="utf-8")
 (OUT / "infer_cases.json").write_text(json.dumps(infer_cases, ensure_ascii=False, indent=2), encoding="utf-8")
