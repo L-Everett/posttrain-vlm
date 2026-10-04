@@ -43,6 +43,7 @@ def main() -> None:
 
     if todo:
         processor = AutoProcessor.from_pretrained(args.model)
+        processor.tokenizer.padding_side = "left"
         model = AutoModelForImageTextToText.from_pretrained(args.model, dtype="auto", device_map="cuda")
         model.eval()
 
