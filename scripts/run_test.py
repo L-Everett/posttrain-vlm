@@ -1,5 +1,6 @@
 import argparse
 import json
+import math
 import os
 import re
 import time
@@ -54,6 +55,14 @@ def score(gold: str, pred: str) -> bool:
     return any(gold_norm == s.strip() for s in sentences if s.strip())
 
 
+def load_image(path: Path, max_pixels) -> Image.Image:
+    image = Image.open(path).convert("RGB")
+    if max_pixels and image.width * image.height > max_pixels:
+        factor = math.sqrt(max_pixels / (image.width * image.height))
+        image = image.resize((int(image.width * factor), int(image.height * factor)))
+    return image
+
+
 def parse_args() -> argparse.Namespace:
     ap = argparse.ArgumentParser(description="ChartQA fast800 评测（relaxed accuracy）")
     ap.add_argument("--model", default="/root/autodl-tmp/models/Qwen3-VL-4B-Instruct")
@@ -61,6 +70,7 @@ def parse_args() -> argparse.Namespace:
     ap.add_argument("--base", action="store_true", help="忽略 adapter，评测基座模型")
     ap.add_argument("--data", default=str(ROOT / "data" / "processed" / "chartqa" / "test_fast800.json"))
     ap.add_argument("--out", default=None, help="默认 results/<adapter名>_fast800.jsonl")
+    ap.add_argument("--max-pixels", type=int, default=None, help="按 LLaMA-Factory 同款逻辑预缩放图片，与训练口径对齐")
     ap.add_argument("--batch-size", type=int, default=8)
     ap.add_argument("--max-new-tokens", type=int, default=64)
     return ap.parse_args()
@@ -70,7 +80,8 @@ def main() -> None:
     args = parse_args()
     adapter = None if args.base else args.adapter
     name = Path(adapter).name if adapter else "baseline"
-    out_path = Path(args.out) if args.out else ROOT / "results" / f"{name}_fast800.jsonl"
+    suffix = f"_px{args.max_pixels}" if args.max_pixels else ""
+    out_path = Path(args.out) if args.out else ROOT / "results" / f"{name}{suffix}_fast800.jsonl"
     out_path.parent.mkdir(parents=True, exist_ok=True)
 
     base = Path(args.data).parent
@@ -83,7 +94,7 @@ def main() -> None:
             done[rec["id"]] = rec
     todo = [x for x in items if x["id"] not in done]
     print(f"data={args.data} out={out_path}", flush=True)
-    print(f"model={args.model} adapter={adapter or '-'}", flush=True)
+    print(f"model={args.model} adapter={adapter or '-'} max_pixels={args.max_pixels or 'processor-default'}", flush=True)
     print(f"total={len(items)} done={len(done)} todo={len(todo)}", flush=True)
 
     if todo:
@@ -103,7 +114,7 @@ def main() -> None:
             batch = todo[start : start + args.batch_size]
             images, texts = [], []
             for item in batch:
-                images.append(Image.open(base / item["image"]).convert("RGB"))
+                images.append(load_image(base / item["image"], args.max_pixels))
                 messages = [{"role": "user", "content": [
                     {"type": "image", "image": str(base / item["image"])},
                     {"type": "text", "text": f"{item['question']} {INSTRUCTION}"},
