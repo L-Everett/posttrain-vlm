@@ -35,8 +35,8 @@ ChartQA 测试集上的 relaxed accuracy（5% 容差）。详细表格、消融�
 
 | 阶段 | Relaxed Accuracy |
 | --- | --- |
-| Qwen3-VL-4B-Instruct（zero-shot） | 82.6% |
-| + LoRA SFT | 83.75% |
+| Qwen3-VL-4B-Instruct（zero-shot） | 82.25% |
+| + LoRA SFT | 83.63% |
 | + 数据飞轮（SFT 第二轮） | TBD |
 | + DPO | TBD |
 
