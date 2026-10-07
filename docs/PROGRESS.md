@@ -7,9 +7,9 @@
 - 8 步清单：① 环境冒烟 ✅ → ② 数据准备 ✅ → ③ zero-shot 基线 ✅ → **下一步 ④ LoRA SFT 第一轮**
 - 基线数字：overall **82.6%** / human **71.75%** / augmented **93.5%**（test_fast800，seed 42，明细在 `results/baseline_fast800.jsonl`）
 - ④ 待办拆解：
-  1. 写 `configs/sft_lora.yaml`（参照 `configs/smoke_lora.yaml`：`dataset_dir` 指 `data/processed/chartqa`，dataset 名 `chartqa_sft`，template `qwen3_vl_nothink`，`image_max_pixels: 602112`，rank 16 / alpha 32，3 epoch 起）
-  2. 远程 `llamafactory-cli train`，预计 1~1.5h（冒烟实测 1.42 step/s @ batch1×acc2；正式 batch 2 会更快），输出存 `/root/autodl-tmp/saves/sft_r1`
-  3. 评测 adapter：`eval/run_baseline.py` 加 `--adapter` 参数（`PeftModel.from_pretrained` 加载）或合并后评，用同一份 fast800 对比基线
+  1. `configs/sft_lora.yaml` 已就绪（rank 16 / alpha 32 / 3 epoch / lr 5e-5 / batch1×acc2 / image_max_pixels 602112）
+  2. 远程 tmux 里 `sh train.sh`：前台实时输出 + 自动落 `logs/train_*.log`，预计 1.5~2h，输出 `/root/autodl-tmp/saves/sft_r1`
+  3. 评测：`sh test.sh`（默认加载 sft_r1 adapter，入口 `scripts/run_test.py`），结果写 `results/sft_r1_fast800.jsonl`，与同一份 fast800 基线对比
   4. 数字进 `docs/results.md` 主结果表第 2 行
 
 ## 环境事实
@@ -27,7 +27,7 @@
 
 - 免密 SSH：密钥在本机 `~/.ssh/id_ed25519`（AutoDL 改 root 密码不影响密钥通道）
 - 非交互 ssh **不加载 .bashrc**：跑 Python 前先 `source /root/miniconda3/etc/profile.d/conda.sh && conda activate base`
-- 长任务：`setsid python xxx </dev/null >/root/autodl-tmp/xxx.log 2>&1 &` 脱离会话，本地 ssh 可断，之后轮询日志
+- 长任务：训练在 `tmux new -s train` 会话里跑 `sh train.sh`（前台实时看 + `logs/` 落盘）；其他脚本可用 `setsid python xxx </dev/null >/root/autodl-tmp/xxx.log 2>&1 &` 脱离会话，之后轮询日志
 - git 单向流：**所有提交走本机**（commit + push，需本机 Clash 代理开）→ 远程 `git pull`；远程实例没有 GitHub 凭证，不要在远程 commit 大改动（冒烟期 scp 传文件的历史已被 reset 清理，保持"本地唯一真源"）
 - 远程一切 git/HF 操作前 `source /etc/network_turbo`，用完 `unset http_proxy https_proxy`（挂着会导致 pip 变慢）
 - 远程 `pkill -f <模式>` 会匹配到 ssh 自身命令行导致会话自杀：模式写成 `'[p]ython xxx'` 括号形式，或复杂命令一律 scp 脚本文件上去跑（PowerShell 嵌套引号不可靠）

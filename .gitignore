@@ -18,6 +18,7 @@ checkpoints/
 *.safetensors
 
 # Logs & experiment tracking
+logs/
 *.log
 wandb/
 swanlog/

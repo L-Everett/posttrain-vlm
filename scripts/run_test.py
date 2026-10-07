@@ -1,7 +1,7 @@
 import argparse
 import json
 import os
-import sys
+import re
 import time
 from pathlib import Path
 
@@ -12,26 +12,69 @@ import torch
 from PIL import Image
 from transformers import AutoModelForImageTextToText, AutoProcessor
 
-sys.path.insert(0, str(Path(__file__).resolve().parent))
-from relaxed_acc import score
-
 ROOT = Path(__file__).resolve().parents[1]
 INSTRUCTION = "Please answer with a single value."
+NUM_RE = re.compile(r"-?\d[\d,]*(?:\.\d+)?")
+REL_TOL = 0.05
+
+
+def parse_number(s: str):
+    t = s.strip().rstrip(".").replace(",", "")
+    if t.endswith("%"):
+        t = t[:-1]
+    try:
+        return float(t)
+    except ValueError:
+        return None
+
+
+def normalize(s: str) -> str:
+    s = s.strip().rstrip(".").lower()
+    return re.sub(r"[^a-z0-9%.\- ]", "", s)
+
+
+def score(gold: str, pred: str) -> bool:
+    gold_num = parse_number(gold)
+    if gold_num is not None:
+        for m in NUM_RE.findall(pred):
+            p = parse_number(m)
+            if p is None:
+                continue
+            if gold_num == 0:
+                if abs(p) <= REL_TOL:
+                    return True
+            elif abs(p - gold_num) / abs(gold_num) <= REL_TOL:
+                return True
+        return False
+    gold_norm = normalize(gold)
+    pred_norm = normalize(pred)
+    if gold_norm == pred_norm:
+        return True
+    sentences = re.split(r"[.\n]", pred_norm)
+    return any(gold_norm == s.strip() for s in sentences if s.strip())
+
+
+def parse_args() -> argparse.Namespace:
+    ap = argparse.ArgumentParser(description="ChartQA fast800 评测（relaxed accuracy）")
+    ap.add_argument("--model", default="/root/autodl-tmp/models/Qwen3-VL-4B-Instruct")
+    ap.add_argument("--adapter", default="/root/autodl-tmp/saves/sft_r1")
+    ap.add_argument("--base", action="store_true", help="忽略 adapter，评测基座模型")
+    ap.add_argument("--data", default=str(ROOT / "data" / "processed" / "chartqa" / "test_fast800.json"))
+    ap.add_argument("--out", default=None, help="默认 results/<adapter名>_fast800.jsonl")
+    ap.add_argument("--batch-size", type=int, default=8)
+    ap.add_argument("--max-new-tokens", type=int, default=64)
+    return ap.parse_args()
 
 
 def main() -> None:
-    ap = argparse.ArgumentParser()
-    ap.add_argument("--model", default="/root/autodl-tmp/models/Qwen3-VL-4B-Instruct")
-    ap.add_argument("--data", default=str(ROOT / "data" / "processed" / "chartqa" / "test_fast800.json"))
-    ap.add_argument("--out", default=str(ROOT / "results" / "baseline_fast800.jsonl"))
-    ap.add_argument("--batch-size", type=int, default=8)
-    ap.add_argument("--max-new-tokens", type=int, default=64)
-    args = ap.parse_args()
+    args = parse_args()
+    adapter = None if args.base else args.adapter
+    name = Path(adapter).name if adapter else "baseline"
+    out_path = Path(args.out) if args.out else ROOT / "results" / f"{name}_fast800.jsonl"
+    out_path.parent.mkdir(parents=True, exist_ok=True)
 
     base = Path(args.data).parent
     items = json.loads(Path(args.data).read_text(encoding="utf-8"))
-    out_path = Path(args.out)
-    out_path.parent.mkdir(parents=True, exist_ok=True)
 
     done = {}
     if out_path.exists():
@@ -39,12 +82,18 @@ def main() -> None:
             rec = json.loads(line)
             done[rec["id"]] = rec
     todo = [x for x in items if x["id"] not in done]
+    print(f"data={args.data} out={out_path}", flush=True)
+    print(f"model={args.model} adapter={adapter or '-'}", flush=True)
     print(f"total={len(items)} done={len(done)} todo={len(todo)}", flush=True)
 
     if todo:
         processor = AutoProcessor.from_pretrained(args.model)
         processor.tokenizer.padding_side = "left"
         model = AutoModelForImageTextToText.from_pretrained(args.model, dtype="auto", device_map="cuda")
+        if adapter:
+            from peft import PeftModel
+
+            model = PeftModel.from_pretrained(model, adapter)
         model.eval()
 
         f = out_path.open("a", encoding="utf-8")
@@ -83,7 +132,7 @@ def main() -> None:
         sub = [r for r in recs if r["type"] == tp]
         if sub:
             by_type[tp] = sum(r["correct"] for r in sub) / len(sub)
-    print(f"RELAXED_ACC overall={overall:.4f} n={len(recs)} by_type={ {k: round(v, 4) for k, v in by_type.items()} }")
+    print(f"RELAXED_ACC overall={overall:.4f} n={len(recs)} by_type={ {k: round(v, 4) for k, v in by_type.items()} }", flush=True)
 
 
 if __name__ == "__main__":

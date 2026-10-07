@@ -46,10 +46,11 @@ ChartQA 测试集上的 relaxed accuracy（5% 容差）。详细表格、消融�
 
 ```
 posttrain-vlm/
+├── train.sh   # 一键训练（前台运行，实时输出 + logs/ 落盘）
+├── test.sh    # 一键评测（默认评最新 adapter）
 ├── configs/   # 训练配置（LoRA SFT、DPO、merge）
 ├── data/      # 数据准备脚本与数据集注册
-├── eval/      # 评测脚本与指标
-├── scripts/   # 端到端流程脚本
+├── scripts/   # 入口脚本（run_train.py / run_test.py）与数据处理
 ├── serving/   # vLLM 启动脚本与 Gradio demo
 └── docs/      # 实验记录与技术笔记
 ```
