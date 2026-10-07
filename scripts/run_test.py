@@ -14,6 +14,7 @@ from PIL import Image
 from transformers import AutoModelForImageTextToText, AutoProcessor
 
 ROOT = Path(__file__).resolve().parents[1]
+DEFAULT_MAX_PIXELS = 768 * 768
 INSTRUCTION = "Please answer with a single value."
 NUM_RE = re.compile(r"-?\d[\d,]*(?:\.\d+)?")
 REL_TOL = 0.05
@@ -70,7 +71,8 @@ def parse_args() -> argparse.Namespace:
     ap.add_argument("--base", action="store_true", help="忽略 adapter，评测基座模型")
     ap.add_argument("--data", default=str(ROOT / "data" / "processed" / "chartqa" / "test_fast800.json"))
     ap.add_argument("--out", default=None, help="默认 results/<adapter名>_fast800.jsonl")
-    ap.add_argument("--max-pixels", type=int, default=None, help="按 LLaMA-Factory 同款逻辑预缩放图片，与训练口径对齐")
+    ap.add_argument("--max-pixels", type=int, default=DEFAULT_MAX_PIXELS, help="视觉像素预算，默认与 LLaMA-Factory 训练默认一致")
+    ap.add_argument("--fullres", action="store_true", help="不缩放（processor 默认全分辨率，仅消融用）")
     ap.add_argument("--batch-size", type=int, default=8)
     ap.add_argument("--max-new-tokens", type=int, default=64)
     return ap.parse_args()
@@ -80,7 +82,13 @@ def main() -> None:
     args = parse_args()
     adapter = None if args.base else args.adapter
     name = Path(adapter).name if adapter else "baseline"
-    suffix = f"_px{args.max_pixels}" if args.max_pixels else ""
+    max_pixels = None if args.fullres else args.max_pixels
+    if max_pixels == DEFAULT_MAX_PIXELS:
+        suffix = ""
+    elif max_pixels is None:
+        suffix = "_fullres"
+    else:
+        suffix = f"_px{max_pixels}"
     out_path = Path(args.out) if args.out else ROOT / "results" / f"{name}{suffix}_fast800.jsonl"
     out_path.parent.mkdir(parents=True, exist_ok=True)
 
@@ -94,7 +102,7 @@ def main() -> None:
             done[rec["id"]] = rec
     todo = [x for x in items if x["id"] not in done]
     print(f"data={args.data} out={out_path}", flush=True)
-    print(f"model={args.model} adapter={adapter or '-'} max_pixels={args.max_pixels or 'processor-default'}", flush=True)
+    print(f"model={args.model} adapter={adapter or '-'} max_pixels={max_pixels if max_pixels is not None else 'fullres'}", flush=True)
     print(f"total={len(items)} done={len(done)} todo={len(todo)}", flush=True)
 
     if todo:
@@ -114,7 +122,7 @@ def main() -> None:
             batch = todo[start : start + args.batch_size]
             images, texts = [], []
             for item in batch:
-                images.append(load_image(base / item["image"], args.max_pixels))
+                images.append(load_image(base / item["image"], max_pixels))
                 messages = [{"role": "user", "content": [
                     {"type": "image", "image": str(base / item["image"])},
                     {"type": "text", "text": f"{item['question']} {INSTRUCTION}"},

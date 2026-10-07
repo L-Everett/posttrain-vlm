@@ -35,12 +35,12 @@ ChartQA 测试集上的 relaxed accuracy（5% 容差）。详细表格、消融�
 
 | 阶段 | Relaxed Accuracy |
 | --- | --- |
-| Qwen3-VL-4B-Instruct（zero-shot） | TBD |
-| + LoRA SFT | TBD |
+| Qwen3-VL-4B-Instruct（zero-shot） | 82.6% |
+| + LoRA SFT | 83.75% |
 | + 数据飞轮（SFT 第二轮） | TBD |
 | + DPO | TBD |
 
-> 训练进行中，数字随每轮实验完成而更新。
+> fast800 快速验证集、统一评测口径；数字随每轮实验完成而更新（明细见 [`docs/results.md`](docs/results.md)）。
 
 ## 目录结构
 
