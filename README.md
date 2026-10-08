@@ -51,7 +51,7 @@ posttrain-vlm/
 ├── configs/   # 训练配置（LoRA SFT、DPO、merge）
 ├── data/      # 数据准备脚本与数据集注册
 ├── scripts/   # 入口脚本（run_train.py / run_test.py）与数据处理
-├── serving/   # vLLM 启动脚本与 Gradio demo
+├── serving/   # 本机 4bit 对比 demo（Gradio）；云 vLLM 为可选路径
 └── docs/      # 实验记录与技术笔记
 ```
 
@@ -59,9 +59,19 @@ posttrain-vlm/
 
 所有实验都按**单张 24 GB 显卡**（RTX 4090 级）设计。每轮训练的 wall-clock 时间与成本记录在 [`docs/results.md`](docs/results.md)。
 
+## 本地部署（4bit 对比 demo）
+
+不依赖云 GPU：在 8 GB 显存的机器上以 **4bit NF4** 加载 Qwen3-VL-4B，并用 PEFT 的 `disable_adapter()` 在**同一模型实例**上关闭/开启微调增量——同一张图 + 同一问题，左右对比「原始模型 vs SFT r2 + DPO」的输出。
+
+- 环境：conda env `ai`（Python 3.10 + torch 2.7.1+cu126）；依赖版本见 [`serving/requirements-local.txt`](serving/requirements-local.txt)
+- 基座：`models/Qwen3-VL-4B-Instruct`（ModelScope 下载）；adapter：`models/dpo_adapter`
+- 启动：双击 `serving/start_demo.bat`，或 `conda activate ai && python serving/local_app.py`
+- 浏览器打开 `http://127.0.0.1:7860`；`python serving/local_app.py --smoke` 为命令行自检
+- 推理口径与云端评测一致（同 instruction、视觉预算 768×768、左 padding、greedy），4bit 量化对两侧一视同仁
+
 ## 状态
 
-开发中 —— 数据处理、训练配置、评测脚本和部署代码会逐步补全。
+开发中 —— 数据处理、训练配置、评测流水线已完成并归档；部署提供本机 4bit 对比 demo（云端 vLLM 为可选路径）。
 
 ## 致谢
 
