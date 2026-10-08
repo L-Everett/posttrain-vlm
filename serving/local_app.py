@@ -24,7 +24,8 @@ def parse_args():
     ap.add_argument("--max-pixels", type=int, default=DEFAULT_MAX_PIXELS)
     ap.add_argument("--max-new-tokens", type=int, default=64)
     ap.add_argument("--port", type=int, default=7860)
-    ap.add_argument("--no-4bit", action="store_true", help="不用 4bit（8G 显存会 OOM，仅供调试）")
+    ap.add_argument("--no-4bit", action="store_true", help="不做量化（8G 显存会 OOM，仅供调试）")
+    ap.add_argument("--load-4bit", action="store_true", help="用 NF4 4bit（更省显存；精度略低于默认 8bit）")
     ap.add_argument("--smoke", action="store_true", help="命令行自检对照，不开网页")
     return ap.parse_args()
 
@@ -46,12 +47,16 @@ class PairModel:
             self.processor.chat_template = template_path.read_text(encoding="utf-8")
             print(f"chat template: {template_path}")
         kwargs = {}
-        if not args.no_4bit:
+        if args.no_4bit:
+            print("未量化加载（bf16，显存需求 ~8.3G）")
+        elif args.load_4bit:
             kwargs["quantization_config"] = BitsAndBytesConfig(
                 load_in_4bit=True,
                 bnb_4bit_quant_type="nf4",
                 bnb_4bit_compute_dtype=torch.bfloat16,
             )
+        else:
+            kwargs["quantization_config"] = BitsAndBytesConfig(load_in_8bit=True)
         model = AutoModelForImageTextToText.from_pretrained(args.base_model, dtype="auto", device_map="cuda:0", **kwargs)
         adapter_path = Path(args.adapter)
         if adapter_path.exists() and (adapter_path / "adapter_config.json").exists():
@@ -66,10 +71,11 @@ class PairModel:
             print(f"未找到 adapter（{adapter_path}），两侧输出将相同")
         self.model.eval()
 
-    def ask(self, image, question, use_adapter):
+    def ask(self, image, question, use_adapter, use_instruction=True):
+        prompt = f"{question} {INSTRUCTION}" if use_instruction else question
         messages = [{"role": "user", "content": [
             {"type": "image", "image": "image.png"},
-            {"type": "text", "text": f"{question} {INSTRUCTION}"},
+            {"type": "text", "text": prompt},
         ]}]
         text = self.processor.apply_chat_template(messages, add_generation_prompt=True, tokenize=False)
         inputs = self.processor(images=[fit_image(image, self.args.max_pixels)], text=[text], return_tensors="pt", padding=True).to(self.model.device, torch.bfloat16)
@@ -119,12 +125,13 @@ def run_smoke(model):
 def build_ui(model):
     import gradio as gr
 
-    def run(image, question):
+    def run(image, question, free_mode):
         if image is None or not question.strip():
             return "", "", "请先提供图片和问题"
-        base, tb = model.ask(image, question, use_adapter=False)
-        ft, tf = model.ask(image, question, use_adapter=True)
-        return base, ft, f"原始 {tb:.1f}s ｜ 微调 {tf:.1f}s"
+        base, tb = model.ask(image, question, use_adapter=False, use_instruction=not free_mode)
+        ft, tf = model.ask(image, question, use_adapter=True, use_instruction=not free_mode)
+        mode = "自由提问" if free_mode else "评测口径（单值指令）"
+        return base, ft, f"{mode} ｜ 原始 {tb:.1f}s ｜ 微调 {tf:.1f}s"
 
     examples = []
     for case in load_smoke_cases()[:8]:
@@ -132,16 +139,22 @@ def build_ui(model):
         examples.append([image_path, case["question"]])
 
     with gr.Blocks(title="ChartQA 微调对比 demo") as demo:
-        gr.Markdown("## ChartQA 微调对比：原始 Qwen3-VL-4B vs SFT r2 + DPO\n上传图表图片、输入问题，两侧同时生成，直观对比微调效果。（本机 4bit 推理，口径与云端评测一致）")
+        gr.Markdown(
+            "## ChartQA 微调对比：原始 Qwen3-VL-4B vs SFT r2 + DPO\n"
+            "上传图表图片、输入问题，两侧同时生成，直观对比微调效果。（本地量化推理，默认 8bit，接近云端 bf16 口径）\n\n"
+            "> 提示：这是 ChartQA **单值问答**模型——解释/闲聊类问题会被压成一个值；想看它如何应对开放问题，请勾选「自由提问模式」。"
+            "切换例题会同时替换图片与问题；编辑后请点「对比生成」（回车不触发）。"
+        )
         with gr.Row():
             image_in = gr.Image(type="pil", label="图表图片", height=420)
             question_in = gr.Textbox(label="问题", value="What is the value of Q2?", lines=3)
+        free_mode = gr.Checkbox(label="自由提问模式（不追加单值指令，观察模型对开放问题的反应）", value=False)
         btn = gr.Button("对比生成", variant="primary")
         with gr.Row():
             out_base = gr.Textbox(label="原始 Qwen3-VL-4B（未微调）", lines=3)
             out_ft = gr.Textbox(label="微调后（SFT r2 + DPO）", lines=3)
         status = gr.Textbox(label="状态", interactive=False)
-        btn.click(run, [image_in, question_in], [out_base, out_ft, status])
+        btn.click(run, [image_in, question_in, free_mode], [out_base, out_ft, status])
         if examples:
             gr.Examples(examples=examples, inputs=[image_in, question_in])
     return demo

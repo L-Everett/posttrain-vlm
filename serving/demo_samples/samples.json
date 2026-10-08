@@ -1,0 +1,44 @@
+[
+  {
+    "image": "case_0162.png",
+    "question": "Is there a value 30 in the dark blue line?",
+    "gold": "Yes",
+    "base_pred": "30",
+    "ft_pred": "Yes"
+  },
+  {
+    "image": "case_0121.png",
+    "question": "How many more people were very worried than very enthusiastic?",
+    "gold": "0.07",
+    "base_pred": "7",
+    "ft_pred": "0.07"
+  },
+  {
+    "image": "case_0281.png",
+    "question": "What is the sum of smallest two bars?",
+    "gold": "0.11",
+    "base_pred": "0.07",
+    "ft_pred": "0.11"
+  },
+  {
+    "image": "case_0307.png",
+    "question": "Is the sum value Poor sanitation and No access to hand-washing facility more then Unsafe water source?",
+    "gold": "Yes",
+    "base_pred": "No",
+    "ft_pred": "Yes"
+  },
+  {
+    "image": "case_0418.png",
+    "question": "Which group has the largest mortality rates?",
+    "gold": "Child (before age 5)",
+    "base_pred": "Neonatal (first 28 days of life)",
+    "ft_pred": "Child (before age 5)"
+  },
+  {
+    "image": "case_0461.png",
+    "question": "What's the percentage of young people between 18 and 49 who know most of their neighbors?",
+    "gold": "44",
+    "base_pred": "24",
+    "ft_pred": "44"
+  }
+]

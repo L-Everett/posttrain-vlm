@@ -4,7 +4,7 @@
 
 ## 当前坐标
 
-- 8 步清单：① ✅ → ② ✅ → ③ ✅ → ④ SFT r1 ✅ → ⑤ 错误分析 ✅ → ⑥ SFT r2 ✅ → ⑦ DPO ✅（85.84% 全量） → ⑧ **本机部署 🚧（4bit 对比 demo 已跑通，等卡拉 adapter 后截图）**
+- 8 步清单：① ✅ → ② ✅ → ③ ✅ → ④ SFT r1 ✅ → ⑤ 错误分析 ✅ → ⑥ SFT r2 ✅ → ⑦ DPO ✅（85.84% 全量） → ⑧ ✅ 本机量化对比 demo（8bit；截图与产物已归档）
 - 主口径结果（默认视觉预算，训练/评测同源，test_fast800）：基线 **82.25%**（human 71.75 / aug 92.75）→ r1 **83.63%**（human 73.0 / aug 94.25）→ r2 **87.12%**（human 80.25 / aug 94.0）→ DPO **87.25%**（human 80.5 / aug 94.0）；全量 2500：r2 85.32%（human 76.8）→ DPO 85.84%（human 77.92 / aug 93.76）；全分辨率消融见 results.md
 - ⑤ 结论：格式类错误 41→9（指令跟随修好）；计算类 71→77、量纲 ×100 错误 1→8（训练标签问题），解析见 results.md
 - ⑥ 状态（2026-10-08 完成）：数据飞轮闭环 ✅
@@ -17,12 +17,12 @@
   2. ✅ 偏好对 723（human 594 / aug 129；错率 19.8% / 8.6%）；4500 候选扫描 14.3 min
   3. ✅ 训练 23.3 min（362 步，loss 0.726，margin 稳定上升）→ adapter `/root/autodl-tmp/saves/dpo`
   4. ✅ 评测：fast800 87.25%（+0.13 vs r2）/ 全量 85.84%（+0.52，human +1.12）；误差分析 `results/error_analysis_dpo.md`
-- ⑧ 状态（进行中）：本机 4bit 对比 demo，跳过硬性云部署
-  1. ✅ 本机环境：conda `ai`（py3.10 + torch 2.7.1+cu126，GPU 可用）+ transformers 5.6.0 / peft 0.18.1 / bitsandbytes 0.50.2 / gradio 6.29 / modelscope 1.40；基座已下至 `posttrain-vlm/models/`（8.28G）
-  2. ✅ `serving/local_app.py` + `start_demo.bat`：4bit 单实例 + `disable_adapter()` 关/开对比；合成图预检 5/5、单题 0.3s、网页 HTTP 200
-  3. ⬜ 等 AutoDL 有卡：拉 `saves/dpo` adapter（132MB）+ 5 张对照测试图 + test_fast800.json → `--smoke` 对照云端 pred → 浏览器截图
-  4. ⬜ README/面试笔记最终同步（云 vLLM 标为可选）
-- 归档（2026-10-08 完成）：r1/r2/DPO 产物（fast800/全量 jsonl + 错误分析报告）已生成并入库；本地 `results/` + 远程数据盘双备份；冒烟残留（dpo_smoke adapter/数据）已清理；LF 默认值 = 768×768 已核实（与脚本默认一致）
+- ⑧ 状态（2026-10-08 完成）：本机量化对比 demo（跳过硬性云部署）
+  1. ✅ 环境/基座/adapter：conda `ai` + 基座 8.28G + adapter（132MB，经无卡模式从 AutoDL 拉回）
+  2. ✅ 量化决策：NF4 微调侧数值题 2/5 与云端不符 → **8bit 默认**（6/6 与云端 bf16 一致）；模板一致性已验（LF 模板 vs 基座模板渲染逐字相同）
+  3. ✅ 冒烟/边界实验（`results/local_demo_check.md`）：6/6 对照通过；文本条件生效；自由模式下基座长解释、微调偏单值
+  4. ✅ UI（自由提问开关）+ 截图归档 `docs/assets/local_demo.png`；README/面试笔记已同步
+- 归档（2026-10-08 完成）：r1/r2/DPO 产物（fast800/全量 jsonl + 错误分析报告）已生成并入库；本地 `results/` + 远程数据盘双备份；⑧ 产物（demo 截图、`local_demo_check.md`、6 条样例）已入库；冒烟残留已清理；LF 默认值 = 768×768 已核实（与脚本默认一致）
 
 ## 环境事实
 

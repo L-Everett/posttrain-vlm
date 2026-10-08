@@ -59,15 +59,18 @@ posttrain-vlm/
 
 所有实验都按**单张 24 GB 显卡**（RTX 4090 级）设计。每轮训练的 wall-clock 时间与成本记录在 [`docs/results.md`](docs/results.md)。
 
-## 本地部署（4bit 对比 demo）
+## 本地部署（量化对比 demo）
 
-不依赖云 GPU：在 8 GB 显存的机器上以 **4bit NF4** 加载 Qwen3-VL-4B，并用 PEFT 的 `disable_adapter()` 在**同一模型实例**上关闭/开启微调增量——同一张图 + 同一问题，左右对比「原始模型 vs SFT r2 + DPO」的输出。
+![本地对比 demo](docs/assets/local_demo.png)
+
+不依赖云 GPU：在 8 GB 显存的机器上以 **8bit** 加载 Qwen3-VL-4B（更接近 bf16 口径；`--load-4bit` 可切 NF4 省显存），并用 PEFT 的 `disable_adapter()` 在**同一模型实例**上关闭/开启微调增量——同一张图 + 同一问题，左右对比「原始模型 vs SFT r2 + DPO」的输出。
 
 - 环境：conda env `ai`（Python 3.10 + torch 2.7.1+cu126）；依赖版本见 [`serving/requirements-local.txt`](serving/requirements-local.txt)
 - 基座：`models/Qwen3-VL-4B-Instruct`（ModelScope 下载）；adapter：`models/dpo_adapter`
 - 启动：双击 `serving/start_demo.bat`，或 `conda activate ai && python serving/local_app.py`
 - 浏览器打开 `http://127.0.0.1:7860`；`python serving/local_app.py --smoke` 为命令行自检
-- 推理口径与云端评测一致（同 instruction、视觉预算 768×768、左 padding、greedy），4bit 量化对两侧一视同仁
+- 推理口径与云端评测一致（同 instruction、视觉预算 768×768、左 padding、greedy）；8bit 下 6/6 测试题与云端 bf16 结果一致（见 [`results/local_demo_check.md`](results/local_demo_check.md)）
+- 模型边界：这是 ChartQA 单值问答模型，解释/闲聊会被压成一个值；勾选界面上的「自由提问模式」可观察不加指令时的行为（基座会长篇解释、微调仍偏单值）
 
 ## 状态
 
