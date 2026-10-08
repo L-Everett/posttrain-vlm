@@ -4,15 +4,15 @@
 
 ## 当前坐标
 
-- 8 步清单：① ✅ → ② ✅ → ③ ✅ → ④ SFT r1 ✅ → ⑤ 错误分析 ✅ → **⑥ 数据飞轮（r2）：数据已就绪，待训练**
-- 主口径结果（默认视觉预算，训练/评测同源，test_fast800）：基线 **82.25%**（human 71.75 / aug 92.75）→ r1 **83.63%**（human 73.0 / aug 94.25）；全分辨率消融见 results.md
+- 8 步清单：① ✅ → ② ✅ → ③ ✅ → ④ SFT r1 ✅ → ⑤ 错误分析 ✅ → ⑥ SFT r2 ✅（87.12% fast800 / 85.32% 全量） → **下一步 ⑦ DPO**
+- 主口径结果（默认视觉预算，训练/评测同源，test_fast800）：基线 **82.25%**（human 71.75 / aug 92.75）→ r1 **83.63%**（human 73.0 / aug 94.25）→ r2 **87.12%**（human 80.25 / aug 94.0）；r2 全量 2500 = 85.32%（human 76.8 / aug 93.84）；全分辨率消融见 results.md
 - ⑤ 结论：格式类错误 41→9（指令跟随修好）；计算类 71→77、量纲 ×100 错误 1→8（训练标签问题），解析见 results.md
-- ⑥ 状态（2026-10-08）：脚本与数据就绪，只差训练
-  1. ✅ `scripts/build_flywheel.py` + `configs/sft_lora_r2.yaml`；两个待定决策已定：小数百分比**剔除**（test 仅 1.6% 小数金标）/ 数词全量解析（实测 0 命中，no-op 保险）/ 列表多答案线索含 and（123 留 48 剔）
-  2. ✅ train_r2 已生成并注册：human 4000（计算类 2667，2:1）+ aug 2000；图 6000 张 238M；`flywheel_manifest.json` 锁 seed 42
-  3. ⬜ 训练：`sh train.sh --config configs/sft_lora_r2.yaml`（tmux 里跑）；评测：`sh test.sh --adapter /root/autodl-tmp/saves/sft_r2`（默认参数即统一预算，无需手传）
-  4. ⬜ 数字进 results.md 主表第 3 行
-- 归档（2026-10-08 已完成）：默认口径重测固化正式数字；`results/error_analysis_r1.md` 已生成；本地 `results/` + 远程数据盘双备份；LF 默认值 = 768×768 已核实（与脚本默认一致）
+- ⑥ 状态（2026-10-08 完成）：数据飞轮闭环 ✅
+  1. ✅ `scripts/build_flywheel.py` + `configs/sft_lora_r2.yaml`；决策：小数百分比剔除（test 仅 1.6% 小数金标）/ 数词 no-op 保险 / 列表多答案线索含 and（123 留 48 剔）
+  2. ✅ train_r2：human 4000（计算类 2667，2:1）+ aug 2000；图 6000 张 238M；`flywheel_manifest.json` 锁 seed 42
+  3. ✅ 训练 103.3 min（9000 步，train_loss 0.2249）→ adapter `/root/autodl-tmp/saves/sft_r2`
+  4. ✅ 评测：fast800 87.12%（+3.49pp vs r1）；全量 85.32%；误差分析 `results/error_analysis_r2.md`（计算 77→61、量纲 8→5、格式零回退）；主表第 3 行已更新
+- 归档（2026-10-08 已完成）：默认口径重测固化正式数字；`results/error_analysis_r1.md`、r2 产物（fast800/全量 jsonl + `error_analysis_r2.md`）已生成并入库；本地 `results/` + 远程数据盘双备份；LF 默认值 = 768×768 已核实（与脚本默认一致）
 
 ## 环境事实
 
@@ -21,9 +21,9 @@
 - 关键路径（全在数据盘，重启不丢）：
   - 模型：`/root/autodl-tmp/models/Qwen3-VL-4B-Instruct`（8.3G）
   - 仓库：`/root/posttrain-vlm`
-  - 数据：`/root/posttrain-vlm/data/processed/chartqa/`（train.json 6000 条 / test_fast800.json / test_full.json 2500 / images 8500 张 / manifest.json 锁 seed=42）
+  - 数据：`/root/posttrain-vlm/data/processed/chartqa/`（train.json 6000 / train_r2.json 6000 / test_fast800.json / test_full.json 2500 / images 8500+6000 张 / manifest.json、flywheel_manifest.json 锁 seed=42）
   - 训练/评测日志：仓库 `logs/`（gitignore）；HF 缓存在 `/root/autodl-tmp`
-- 数据池实况：train 池 human 7398 / aug 20901，取了 2000+4000；test 池 human/aug 各 1250
+- 数据池实况：train 池 human 7398 / aug 20901，r1 取 2000+4000；r2 清洗后 7236/20848，取 4000+2000；test 池 human/aug 各 1250
 
 ## 操作手册（本仓库与远程实例的协作约定）
 

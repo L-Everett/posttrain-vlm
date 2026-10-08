@@ -18,6 +18,7 @@
 | 划分 | 来源 | 规模 | 用途 |
 | --- | --- | --- | --- |
 | 训练集 | ChartQA train（池：human 7398 / aug 20901） | 6,000（2000 human + 4000 aug，seed 42，见 manifest.json） | SFT / DPO |
+| 训练集 r2 | 同一池，标签清洗后重建（seed 42，见 flywheel_manifest.json） | 6,000（4000 human + 2000 aug） | SFT r2 |
 | 快速验证集 | ChartQA test（池 2500：human/aug 各半） | 800（分层 400+400，seed 42） | 快速迭代 |
 | 最终评测 | ChartQA test | 全量 2500 | 最终数字 |
 
@@ -36,7 +37,7 @@
 | --- | --- | --- | --- |
 | 1 | Zero-shot 基线 | **82.25%**（fast800） | human 71.75% / aug 92.75%；原始模型裸跑，human 题型是提升空间所在 |
 | 2 | LoRA SFT 第一轮 | **83.63%**（fast800） | human 73.0% / aug 94.25%；较基线 +1.4pp；格式类错误大幅修复、计算类回退（见失败案例） |
-| 3 | SFT 第二轮（数据飞轮） | TBD | |
+| 3 | SFT 第二轮（数据飞轮） | **87.12%**（fast800）/ 85.32%（全量2500） | human 80.25% / aug 94.0%；较 r1 +3.49pp；计算类 77→61、量纲 8→5、格式零回退（见失败案例） |
 | 4 | + DPO | TBD | |
 
 > 评测口径：训练与评测统一使用视觉像素预算（评测脚本默认参数，与 LLaMA-Factory 训练默认一致）；"全分辨率"仅作消融。
@@ -58,7 +59,8 @@
 | SFT 第一轮 | 4090 × 1 | 1h45m | ~3.5 元 | 9000 步 @1.42 step/s，与冒烟预测一致 |
 | 口径对照评测（2 次） | 4090 × 1 | ~5 min | ~0.1 元 | 统一预算 vs 全分辨率 |
 | 默认口径重测（2 次） | 4090 × 1 | ~4 min | ~0.1 元 | 固化正式数字 |
-| SFT 第二轮 | TBD | TBD | TBD | |
+| SFT 第二轮 | 4090 × 1 | 1h43m | ~3.5 元 | 9000 步 @1.47 step/s，train_loss 0.2249 |
+| r2 评测（fast800 + 全量） | 4090 × 1 | 2.1 + 6.6 min | ~0.15 元 | 6.28 q/s |
 | DPO | TBD | TBD | TBD | |
 
 ## 失败案例
@@ -68,6 +70,8 @@
 - 量纲错误（×/100）：1 → 8。例：`What percent who think of ... Dangerous?`（gold 62；基座 62 → SFT 0.62）
 - 训练集标签格式统计（6000 条）：小数百分比 180 / 列表 50 / 单词 835 —— r2 先做标签治理
 - 分类报告：`results/error_analysis_r1.md`
+- r2 相对 r1（fast800）：错误 131→103（修好 42 / 弄坏 14）；计算/比较类 77→61、量纲 8→5、非数值题格式 9→7（零新增弄坏）。修回案例：`How many waited in Total for 10mins?`（r1 14 → r2 33）、`What percent ... Dangerous?`（r1 0.62 → r2 62）
+- 分类报告：`results/error_analysis_r2.md`
 
 ## 备注 / 决策
 
@@ -85,3 +89,4 @@
 - [2026-10-08] r2 数据构建实测（`build_flywheel.py --stats-only` + 正式生成）：三规则命中——歧义小数百分比剔除 167（human 114 / aug 53；test 交叉检验：318 条 percent 题中 gold<1 仅 5 条 = 1.6%，drop 策略成立）；列表标签 123 留 / 48 剔（多答案线索含 and 后救回一批两问句）；数词转换 0 命中——核查 r1 train.json 含数词标签仅 2 条且为误报，此前"单词 835"实为**非数字单词答案**（Yes/No/颜色/类别等，共 1087 条），训练标签中无真数词；规则保留为保险。→ 修正 [2026-10-07] 中对"数字单词规范化"的预期。
 - [2026-10-08] r2 采样：human 清洗后 7236（计算类 3893），按 2:1 取 2667+1333；aug 2000；合计 6000（seed 42，`flywheel_manifest.json`）。未采用"全取计算类"——那样非数值样本只剩 115 条，有回退格式修复的风险。
 - [2026-10-08] r2 数据落盘：`train_r2.json` 6000 条 + `images/train_r2/` 6000 张（238M）；`dataset_info.json` 增注册 `chartqa_sft_r2`（保留 `chartqa_sft`）。
+- [2026-10-08] r2 结果归档：fast800 **87.12%**（human 80.25 / aug 94.0），全量 2500 = **85.32%**（human 76.8 / aug 93.84）；较 r1 +3.49pp（fast800），超出噪声带。主因：计算/比较类错误 77→61（human 4000 + 2:1 配比奏效），且格式修复未回退。产物：`results/sft_r2_fast800.jsonl`、`results/sft_r2_full.jsonl`、`results/error_analysis_r2.md`。
