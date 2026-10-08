@@ -23,13 +23,13 @@ def parse_args() -> argparse.Namespace:
 def build_cmd(args: argparse.Namespace) -> list:
     cmd = ["llamafactory-cli", "train", str(args.config)]
     if args.output_dir:
-        cmd += ["--output_dir", args.output_dir]
+        cmd.append(f"output_dir={args.output_dir}")
     if args.dataset:
-        cmd += ["--dataset", args.dataset]
+        cmd.append(f"dataset={args.dataset}")
     if args.num_epochs is not None:
-        cmd += ["--num_train_epochs", str(args.num_epochs)]
+        cmd.append(f"num_train_epochs={args.num_epochs}")
     if args.learning_rate is not None:
-        cmd += ["--learning_rate", str(args.learning_rate)]
+        cmd.append(f"learning_rate={args.learning_rate}")
     return cmd
 
 
