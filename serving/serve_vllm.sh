@@ -3,6 +3,7 @@ cd "$(dirname "$0")/.." || exit 1
 VENV=/root/autodl-tmp/venv-vllm
 MODEL=/root/autodl-tmp/merged/dpo
 mkdir -p logs
+export VLLM_USE_FLASHINFER_SAMPLER=0
 nohup "$VENV/bin/vllm" serve "$MODEL" \
   --served-model-name chartqa-vl \
   --host 127.0.0.1 \
