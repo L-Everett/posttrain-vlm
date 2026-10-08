@@ -57,11 +57,17 @@ def main():
     ap = argparse.ArgumentParser(description="vLLM OpenAI 接口冒烟/压测")
     ap.add_argument("--base-url", default="http://127.0.0.1:8000")
     ap.add_argument("--n", type=int, default=50)
+    ap.add_argument("--ids", default=None, help="逗号分隔的题目 id，指定时忽略 --n")
     ap.add_argument("--conc", type=int, default=1)
     ap.add_argument("--verbose", action="store_true")
     args = ap.parse_args()
 
-    items = json.loads((DATA / "test_fast800.json").read_text(encoding="utf-8"))[: args.n]
+    items = json.loads((DATA / "test_fast800.json").read_text(encoding="utf-8"))
+    if args.ids:
+        want = {int(x) for x in args.ids.split(",")}
+        items = [it for it in items if it["id"] in want]
+    else:
+        items = items[: args.n]
     print(f"items={len(items)} conc={args.conc}", flush=True)
     t0 = time.time()
     latencies, correct, _ = run_conc(items, args.base_url, args.conc, args.verbose)
