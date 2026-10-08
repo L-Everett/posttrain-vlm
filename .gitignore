@@ -7,6 +7,9 @@ venv/
 # Local environment
 .env
 
+# Temp files (session scratch, delete after use)
+Temp/
+
 # Data & model artifacts (large files)
 data/raw/
 data/processed/
