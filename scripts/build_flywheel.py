@@ -29,7 +29,7 @@ SCALES = {"hundred": 100, "thousand": 1000, "million": 1000000, "billion": 10000
 
 NUMBER_WORD_RE = re.compile(r"\b(?:" + "|".join(sorted({**ONES, **TENS, **SCALES}, key=len, reverse=True)) + r")\b")
 COMPUTE_RE = re.compile(r"\b(?:" + "|".join(re.escape(k) for k in COMPUTE_KW) + r")\b")
-MULTI_KW = ("two", "three", "four", "both", "values", "names", "pair", "each", "all", "list")
+MULTI_KW = ("two", "three", "four", "both", "values", "names", "pair", "each", "all", "list", "and")
 MULTI_RE = re.compile(r"\b(?:" + "|".join(re.escape(k) for k in MULTI_KW) + r")\b")
 
 TAGS = ("percent_decimal_drop", "percent_decimal_normalize", "percent_decimal_sign_keep", "list_drop", "list_keep", "word_convert")
@@ -150,6 +150,7 @@ def parse_args():
     ap.add_argument("--train-human", type=int, default=4000)
     ap.add_argument("--train-aug", type=int, default=2000)
     ap.add_argument("--seed", type=int, default=42)
+    ap.add_argument("--compute-ratio", type=float, default=2.0, help="human 采样中计算类对其他的目标比例")
     ap.add_argument("--percent-policy", choices=["drop", "normalize"], default="drop")
     ap.add_argument("--stats-only", action="store_true", help="只打印清洗与抽样报告，不写任何文件")
     return ap.parse_args()
@@ -171,10 +172,18 @@ def main():
     comp, rest = [], []
     for i in human_kept:
         (comp if COMPUTE_RE.search(train[i]["query"].lower()) else rest).append(i)
-    if len(comp) >= need_h:
-        picks_h = rng.sample(comp, need_h)
+    comp_set = set(comp)
+    comp_need = round(need_h * args.compute_ratio / (1 + args.compute_ratio))
+    picks_c = rng.sample(comp, min(comp_need, len(comp)))
+    picks_r = rng.sample(rest, min(need_h - len(picks_c), len(rest)))
+    short = need_h - len(picks_c) - len(picks_r)
+    if short > 0:
+        picked = set(picks_c) | set(picks_r)
+        spare = [i for i in human_kept if i not in picked]
+        picks_h = picks_c + picks_r + rng.sample(spare, min(short, len(spare)))
     else:
-        picks_h = comp + rng.sample(rest, min(need_h - len(comp), len(rest)))
+        picks_h = picks_c + picks_r
+    n_comp = sum(1 for i in picks_h if i in comp_set)
     aug_keys = list(aug_kept)
     picks_a = rng.sample(aug_keys, min(need_a, len(aug_keys)))
     picks = sorted(picks_h + picks_a)
@@ -194,7 +203,7 @@ def main():
     lines.append(f"  残余含数词标签（未转换，保留）: {len(human_residual) + len(aug_residual)}")
     for ex in (human_residual + aug_residual)[:5]:
         lines.append(f"    - {ex}")
-    lines.append(f"抽样: human={len(picks_h)}（计算类优先 {min(len(comp), need_h)}） aug={len(picks_a)} 合计 {len(picks)}")
+    lines.append(f"抽样: human={len(picks_h)}（计算类 {n_comp} / 其他 {len(picks_h) - n_comp}） aug={len(picks_a)} 合计 {len(picks)}")
     lines.append(f"TEST 交叉检验: {test_cross_check(out / 'test_full.json') or 'test_full.json 不存在，跳过'}")
     print("\n".join(lines), flush=True)
 
@@ -226,6 +235,7 @@ def main():
         "seed": args.seed,
         "instruction": INSTRUCTION,
         "percent_policy": args.percent_policy,
+        "compute_ratio": args.compute_ratio,
         "quotas": {"human": need_h, "aug": need_a},
         "pool": {
             "human_raw": len(human_idx),
@@ -242,7 +252,8 @@ def main():
             "human": len(picks_h),
             "aug": len(picks_a),
             "total": len(picks),
-            "human_compute": min(len(comp), need_h),
+            "human_compute": n_comp,
+            "human_compute_pool": len(comp),
         },
         "picked_indices": {"human": sorted(picks_h), "aug": sorted(picks_a)},
     }
