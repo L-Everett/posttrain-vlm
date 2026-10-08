@@ -14,6 +14,7 @@ def parse_args() -> argparse.Namespace:
     ap = argparse.ArgumentParser(description="SFT/DPO 训练入口（调用 LLaMA-Factory）")
     ap.add_argument("--config", default=str(ROOT / "configs" / "sft_lora.yaml"))
     ap.add_argument("--output-dir", default=None, help="覆盖 yaml 里的 output_dir")
+    ap.add_argument("--dataset", default=None, help="覆盖 yaml 里的 dataset")
     ap.add_argument("--num-epochs", type=float, default=None, help="覆盖 num_train_epochs")
     ap.add_argument("--learning-rate", type=float, default=None, help="覆盖 learning_rate")
     return ap.parse_args()
@@ -23,6 +24,8 @@ def build_cmd(args: argparse.Namespace) -> list:
     cmd = ["llamafactory-cli", "train", str(args.config)]
     if args.output_dir:
         cmd += ["--output_dir", args.output_dir]
+    if args.dataset:
+        cmd += ["--dataset", args.dataset]
     if args.num_epochs is not None:
         cmd += ["--num_train_epochs", str(args.num_epochs)]
     if args.learning_rate is not None:
