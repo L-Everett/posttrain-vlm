@@ -4,15 +4,20 @@
 
 ## 当前坐标
 
-- 8 步清单：① ✅ → ② ✅ → ③ ✅ → ④ SFT r1 ✅ → ⑤ 错误分析 ✅ → ⑥ SFT r2 ✅（87.12% fast800 / 85.32% 全量） → **下一步 ⑦ DPO**
-- 主口径结果（默认视觉预算，训练/评测同源，test_fast800）：基线 **82.25%**（human 71.75 / aug 92.75）→ r1 **83.63%**（human 73.0 / aug 94.25）→ r2 **87.12%**（human 80.25 / aug 94.0）；r2 全量 2500 = 85.32%（human 76.8 / aug 93.84）；全分辨率消融见 results.md
+- 8 步清单：① ✅ → ② ✅ → ③ ✅ → ④ SFT r1 ✅ → ⑤ 错误分析 ✅ → ⑥ SFT r2 ✅ → ⑦ DPO ✅（85.84% 全量） → **下一步 ⑧ 合并 + vLLM/Gradio 部署**
+- 主口径结果（默认视觉预算，训练/评测同源，test_fast800）：基线 **82.25%**（human 71.75 / aug 92.75）→ r1 **83.63%**（human 73.0 / aug 94.25）→ r2 **87.12%**（human 80.25 / aug 94.0）→ DPO **87.25%**（human 80.5 / aug 94.0）；全量 2500：r2 85.32%（human 76.8）→ DPO 85.84%（human 77.92 / aug 93.76）；全分辨率消融见 results.md
 - ⑤ 结论：格式类错误 41→9（指令跟随修好）；计算类 71→77、量纲 ×100 错误 1→8（训练标签问题），解析见 results.md
 - ⑥ 状态（2026-10-08 完成）：数据飞轮闭环 ✅
   1. ✅ `scripts/build_flywheel.py` + `configs/sft_lora_r2.yaml`；决策：小数百分比剔除（test 仅 1.6% 小数金标）/ 数词 no-op 保险 / 列表多答案线索含 and（123 留 48 剔）
   2. ✅ train_r2：human 4000（计算类 2667，2:1）+ aug 2000；图 6000 张 238M；`flywheel_manifest.json` 锁 seed 42
   3. ✅ 训练 103.3 min（9000 步，train_loss 0.2249）→ adapter `/root/autodl-tmp/saves/sft_r2`
   4. ✅ 评测：fast800 87.12%（+3.49pp vs r1）；全量 85.32%；误差分析 `results/error_analysis_r2.md`（计算 77→61、量纲 8→5、格式零回退）；主表第 3 行已更新
-- 归档（2026-10-08 已完成）：默认口径重测固化正式数字；`results/error_analysis_r1.md`、r2 产物（fast800/全量 jsonl + `error_analysis_r2.md`）已生成并入库；本地 `results/` + 远程数据盘双备份；LF 默认值 = 768×768 已核实（与脚本默认一致）
+- ⑦ 状态（2026-10-08 完成）：
+  1. ✅ `scripts/build_dpo.py`（拒绝采样，候选=训练池中 r2 未训样本）+ `configs/dpo_lora.yaml`；冒烟（9 对）抓出并修复 run_train 覆盖参数 `key=value` 坑
+  2. ✅ 偏好对 723（human 594 / aug 129；错率 19.8% / 8.6%）；4500 候选扫描 14.3 min
+  3. ✅ 训练 23.3 min（362 步，loss 0.726，margin 稳定上升）→ adapter `/root/autodl-tmp/saves/dpo`
+  4. ✅ 评测：fast800 87.25%（+0.13 vs r2）/ 全量 85.84%（+0.52，human +1.12）；误差分析 `results/error_analysis_dpo.md`
+- 归档（2026-10-08 完成）：r1/r2/DPO 产物（fast800/全量 jsonl + 错误分析报告）已生成并入库；本地 `results/` + 远程数据盘双备份；冒烟残留（dpo_smoke adapter/数据）已清理；LF 默认值 = 768×768 已核实（与脚本默认一致）
 
 ## 环境事实
 
@@ -21,7 +26,7 @@
 - 关键路径（全在数据盘，重启不丢）：
   - 模型：`/root/autodl-tmp/models/Qwen3-VL-4B-Instruct`（8.3G）
   - 仓库：`/root/posttrain-vlm`
-  - 数据：`/root/posttrain-vlm/data/processed/chartqa/`（train.json 6000 / train_r2.json 6000 / test_fast800.json / test_full.json 2500 / images 8500+6000 张 / manifest.json、flywheel_manifest.json 锁 seed=42）
+  - 数据：`/root/posttrain-vlm/data/processed/chartqa/`（train.json 6000 / train_r2.json 6000 / dpo_pairs.json 723 / test_fast800.json / test_full.json 2500 / images 8500+6000+dpo / manifest.json、flywheel_manifest.json、dpo_manifest_chartqa_dpo.json 锁 seed=42）
   - 训练/评测日志：仓库 `logs/`（gitignore）；HF 缓存在 `/root/autodl-tmp`
 - 数据池实况：train 池 human 7398 / aug 20901，r1 取 2000+4000；r2 清洗后 7236/20848，取 4000+2000；test 池 human/aug 各 1250
 
@@ -41,3 +46,4 @@
 3. 批量生成必须左 padding，否则分数静默变烂
 4. HF 数据集下载：单文件阶段慢属正常，多 parquet 并行后速度会跃升；别中途乱切通道重跑
 5. 视觉像素预算是"输入契约"：训练侧显式预算与评测口径不一致会静默低估分数（实测约 0.5pp）；已收进 `run_test.py` 默认参数，训练/评测/部署同源
+6. LF CLI 覆盖 yaml 参数必须 `key=value`（OmegaConf.from_cli），`--key value` 会被拒；`run_train.py` 已修复并实测（DPO 冒烟）

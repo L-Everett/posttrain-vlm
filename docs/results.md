@@ -19,6 +19,7 @@
 | --- | --- | --- | --- |
 | 训练集 | ChartQA train（池：human 7398 / aug 20901） | 6,000（2000 human + 4000 aug，seed 42，见 manifest.json） | SFT / DPO |
 | 训练集 r2 | 同一池，标签清洗后重建（seed 42，见 flywheel_manifest.json） | 6,000（4000 human + 2000 aug） | SFT r2 |
+| 偏好对 | 训练池未训样本拒绝采样（r2 答错才成对，seed 42，见 dpo_manifest_chartqa_dpo.json） | 723（human 594 + aug 129） | DPO |
 | 快速验证集 | ChartQA test（池 2500：human/aug 各半） | 800（分层 400+400，seed 42） | 快速迭代 |
 | 最终评测 | ChartQA test | 全量 2500 | 最终数字 |
 
@@ -38,7 +39,7 @@
 | 1 | Zero-shot 基线 | **82.25%**（fast800） | human 71.75% / aug 92.75%；原始模型裸跑，human 题型是提升空间所在 |
 | 2 | LoRA SFT 第一轮 | **83.63%**（fast800） | human 73.0% / aug 94.25%；较基线 +1.4pp；格式类错误大幅修复、计算类回退（见失败案例） |
 | 3 | SFT 第二轮（数据飞轮） | **87.12%**（fast800）/ 85.32%（全量2500） | human 80.25% / aug 94.0%；较 r1 +3.49pp；计算类 77→61、量纲 8→5、格式零回退（见失败案例） |
-| 4 | + DPO | TBD | |
+| 4 | + DPO | **87.25%**（fast800）/ 85.84%（全量2500） | human 80.5% / aug 94.0%（fast800）；较 r2 +0.13pp（fast800）/ +0.52pp（全量）；human +1.12pp，不掉分（见失败案例） |
 
 > 评测口径：训练与评测统一使用视觉像素预算（评测脚本默认参数，与 LLaMA-Factory 训练默认一致）；"全分辨率"仅作消融。
 
@@ -61,7 +62,9 @@
 | 默认口径重测（2 次） | 4090 × 1 | ~4 min | ~0.1 元 | 固化正式数字 |
 | SFT 第二轮 | 4090 × 1 | 1h43m | ~3.5 元 | 9000 步 @1.47 step/s，train_loss 0.2249 |
 | r2 评测（fast800 + 全量） | 4090 × 1 | 2.1 + 6.6 min | ~0.15 元 | 6.28 q/s |
-| DPO | TBD | TBD | TBD | |
+| DPO 偏好对构建 | 4090 × 1 | 14.3 min | ~0.5 元 | 4500 候选扫描 → 723 对（错率 human 19.8% / aug 8.6%） |
+| DPO 训练 | 4090 × 1 | 23.3 min | ~0.8 元 | 362 步 @0.415 step/s，train_loss 0.726 |
+| DPO 评测（fast800 + 全量） | 4090 × 1 | 2.1 + 6.6 min | ~0.15 元 | |
 
 ## 失败案例
 
@@ -72,6 +75,8 @@
 - 分类报告：`results/error_analysis_r1.md`
 - r2 相对 r1（fast800）：错误 131→103（修好 42 / 弄坏 14）；计算/比较类 77→61、量纲 8→5、非数值题格式 9→7（零新增弄坏）。修回案例：`How many waited in Total for 10mins?`（r1 14 → r2 33）、`What percent ... Dangerous?`（r1 0.62 → r2 62）
 - 分类报告：`results/error_analysis_r2.md`
+- DPO 相对 r2（fast800）：错误 103→102（修 6 / 破 5）——计算类 61→59、量纲 5→4 微降；非数值格式 7→8（2 个新回退，如 `biggest response for Democrats?` Same→33）。全量 human 76.8→77.92（+1.12pp）
+- 分类报告：`results/error_analysis_dpo.md`
 
 ## 备注 / 决策
 
@@ -90,3 +95,5 @@
 - [2026-10-08] r2 采样：human 清洗后 7236（计算类 3893），按 2:1 取 2667+1333；aug 2000；合计 6000（seed 42，`flywheel_manifest.json`）。未采用"全取计算类"——那样非数值样本只剩 115 条，有回退格式修复的风险。
 - [2026-10-08] r2 数据落盘：`train_r2.json` 6000 条 + `images/train_r2/` 6000 张（238M）；`dataset_info.json` 增注册 `chartqa_sft_r2`（保留 `chartqa_sft`）。
 - [2026-10-08] r2 结果归档：fast800 **87.12%**（human 80.25 / aug 94.0），全量 2500 = **85.32%**（human 76.8 / aug 93.84）；较 r1 +3.49pp（fast800），超出噪声带。主因：计算/比较类错误 77→61（human 4000 + 2:1 配比奏效），且格式修复未回退。产物：`results/sft_r2_fast800.jsonl`、`results/sft_r2_full.jsonl`、`results/error_analysis_r2.md`。
+- [2026-10-08] 坑6：LF CLI 覆盖参数必须写 `key=value`（`OmegaConf.from_cli`），`--key value` 会被 HfArgumentParser 拒绝并报 unused keys——`run_train.py` 的覆盖功能此前从未被实测，DPO 冒烟时修复。
+- [2026-10-08] DPO 执行：拒绝采样 723 对（候选=训练池中 r2 未训样本 3000 human + 1500 aug，答错才成对，防止背题污染）；超参对齐 LF 官方 `qwen3vl_lora_dpo.yaml`（β0.1 / sigmoid / lr 5e-6 / r16 续训 sft_r2 adapter；2ep×acc4 与官方 3ep×acc8 等效步数）。结果 fast800 87.25%（+0.13）、全量 **85.84%**（+0.52，human +1.12）——不掉分、小幅正向；未大幅拉升属预期（SFT 已强 + 偏好集仅 723 + β 保守），后续可试降 β / 扩对数。产物：`results/dpo_fast800.jsonl`、`results/dpo_full.jsonl`、`results/error_analysis_dpo.md`。
