@@ -4,14 +4,14 @@
 
 ## 当前坐标
 
-- 8 步清单：① ✅ → ② ✅ → ③ ✅ → ④ SFT r1 ✅ → ⑤ 错误分析 ✅ → **下一步 ⑥ 数据飞轮（r2）**
+- 8 步清单：① ✅ → ② ✅ → ③ ✅ → ④ SFT r1 ✅ → ⑤ 错误分析 ✅ → **⑥ 数据飞轮（r2）：数据已就绪，待训练**
 - 主口径结果（默认视觉预算，训练/评测同源，test_fast800）：基线 **82.25%**（human 71.75 / aug 92.75）→ r1 **83.63%**（human 73.0 / aug 94.25）；全分辨率消融见 results.md
 - ⑤ 结论：格式类错误 41→9（指令跟随修好）；计算类 71→77、量纲 ×100 错误 1→8（训练标签问题），解析见 results.md
-- ⑥ 待办：
-  1. 写 `scripts/build_flywheel.py` + `configs/sft_lora_r2.yaml`（标签清洗三规则 + human 4000 计算类优先，总量 6000）
-  2. 两个待定决策：歧义小数百分比"剔除 vs 归一化"；数字单词转换表范围
-  3. 训练 `sh train.sh`，评测 `sh test.sh`（默认参数即统一预算，无需手传）
-  4. 数字进 results.md 主表第 3 行
+- ⑥ 状态（2026-10-08）：脚本与数据就绪，只差训练
+  1. ✅ `scripts/build_flywheel.py` + `configs/sft_lora_r2.yaml`；两个待定决策已定：小数百分比**剔除**（test 仅 1.6% 小数金标）/ 数词全量解析（实测 0 命中，no-op 保险）/ 列表多答案线索含 and（123 留 48 剔）
+  2. ✅ train_r2 已生成并注册：human 4000（计算类 2667，2:1）+ aug 2000；图 6000 张 238M；`flywheel_manifest.json` 锁 seed 42
+  3. ⬜ 训练：`sh train.sh --config configs/sft_lora_r2.yaml`（tmux 里跑）；评测：`sh test.sh --adapter /root/autodl-tmp/saves/sft_r2`（默认参数即统一预算，无需手传）
+  4. ⬜ 数字进 results.md 主表第 3 行
 - 归档（2026-10-08 已完成）：默认口径重测固化正式数字；`results/error_analysis_r1.md` 已生成；本地 `results/` + 远程数据盘双备份；LF 默认值 = 768×768 已核实（与脚本默认一致）
 
 ## 环境事实
