@@ -1,4 +1,5 @@
 import json
+import os
 import re
 import time
 from pathlib import Path
@@ -8,7 +9,7 @@ from PIL import Image
 from transformers import AutoModelForImageTextToText, AutoProcessor
 
 ROOT = Path(__file__).resolve().parents[1]
-MODEL = "/root/autodl-tmp/models/Qwen3-VL-4B-Instruct"
+MODEL = os.environ.get("MODEL_PATH", "path/to/your/Qwen3-VL-4B-Instruct")
 OUT = ROOT / "data" / "smoke"
 CASES = OUT / "infer_cases.json"
 
@@ -23,7 +24,7 @@ for idx, case in enumerate(cases):
     path = str(OUT / case["image"])
     image = Image.open(path).convert("RGB")
     messages = [{"role": "user", "content": [
-        {"type": "image", "image": path},
+        {"type": "image"},
         {"type": "text", "text": case["question"]},
     ]}]
     text = processor.apply_chat_template(messages, add_generation_prompt=True, tokenize=False)

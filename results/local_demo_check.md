@@ -1,6 +1,6 @@
-# 本机部署验证：8bit 对比 demo（2026-10-08）
+# 本机部署验证：8bit 对比 demo
 
-服务：`serving/local_app.py` —— 4B 单实例 + PEFT `disable_adapter()` 关/开微调增量（基座 `models/Qwen3-VL-4B-Instruct` + adapter `models/dpo_adapter`）。
+服务：`serving/local_app.py` —— 4B 单实例 + PEFT `disable_adapter()` 关/开微调增量（基座 `path/to/your/Qwen3-VL-4B-Instruct` + adapter `path/to/your/dpo_adapter`）。
 机器：RTX 4060 Ti 8GB / 32GB RAM；Python 3.10 + torch 2.7.1+cu126 + transformers 5.6.0。
 
 ## 与云端评测一致性（final smoke，默认 8bit）

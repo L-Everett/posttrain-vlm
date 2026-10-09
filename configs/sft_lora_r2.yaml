@@ -1,4 +1,4 @@
-model_name_or_path: /root/autodl-tmp/models/Qwen3-VL-4B-Instruct
+model_name_or_path: path/to/your/Qwen3-VL-4B-Instruct
 
 stage: sft
 do_train: true
@@ -6,15 +6,16 @@ finetuning_type: lora
 lora_rank: 16
 lora_alpha: 32
 lora_target: all
+seed: 42
 
-dataset_dir: /root/posttrain-vlm/data/processed/chartqa
+dataset_dir: path/to/your/posttrain-vlm/data/processed/chartqa
 dataset: chartqa_sft_r2
 template: qwen3_vl_nothink
 overwrite_cache: true
 preprocessing_num_workers: 4
 cutoff_len: 2048
 
-output_dir: /root/autodl-tmp/saves/sft_r2
+output_dir: path/to/your/saves/sft_r2
 logging_steps: 10
 save_steps: 1000
 save_total_limit: 2

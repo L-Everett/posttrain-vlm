@@ -11,9 +11,8 @@ import requests
 
 ROOT = Path(__file__).resolve().parents[1]
 DATA = ROOT / "data" / "processed" / "chartqa"
-INSTRUCTION = "Please answer with a single value."
 sys.path.insert(0, str(ROOT / "scripts"))
-from run_test import score  # noqa: E402
+from common import INSTRUCTION, score  # noqa: E402
 
 
 def ask(base_url, item, max_tokens=64):

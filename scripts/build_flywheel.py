@@ -7,15 +7,14 @@ import re
 from pathlib import Path
 
 os.environ.setdefault("HF_ENDPOINT", "https://hf-mirror.com")
-os.environ.setdefault("HF_HOME", "/root/autodl-tmp/hf_cache")
 
 from datasets import load_dataset
 from PIL import Image
 
-from analyze_errors import COMPUTE_KW, parse_number
+from analyze_errors import COMPUTE_KW
+from common import INSTRUCTION, parse_number
 
 ROOT = Path(__file__).resolve().parents[1]
-INSTRUCTION = "Please answer with a single value."
 PERCENT_RE = re.compile(r"percent|percentage|%", re.IGNORECASE)
 LIST_RE = re.compile(r"^\[.*\]$", re.DOTALL)
 

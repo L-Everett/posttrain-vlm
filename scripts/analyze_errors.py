@@ -1,10 +1,10 @@
 import argparse
 import json
-import re
 from pathlib import Path
 
+from common import NUM_RE, parse_number
+
 ROOT = Path(__file__).resolve().parents[1]
-NUM_RE = re.compile(r"-?\d[\d,]*(?:\.\d+)?")
 
 COMPUTE_KW = (
     "average", "mean", "median", "sum", "total", "difference", "differ",
@@ -22,16 +22,6 @@ LABELS = {
     "other_nonnumeric": "其他非数值题错误",
     "correct": "正确",
 }
-
-
-def parse_number(s):
-    t = str(s).strip().rstrip(".").replace(",", "")
-    if t.endswith("%"):
-        t = t[:-1]
-    try:
-        return float(t)
-    except ValueError:
-        return None
 
 
 def extract_numbers(s):

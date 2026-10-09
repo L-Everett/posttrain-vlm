@@ -6,7 +6,6 @@ import random
 from pathlib import Path
 
 os.environ.setdefault("HF_ENDPOINT", "https://hf-mirror.com")
-os.environ.setdefault("HF_HOME", "/root/autodl-tmp/hf_cache")
 
 from datasets import load_dataset
 from PIL import Image

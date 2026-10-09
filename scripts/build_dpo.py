@@ -6,14 +6,13 @@ import time
 from pathlib import Path
 
 os.environ.setdefault("HF_ENDPOINT", "https://hf-mirror.com")
-os.environ.setdefault("HF_HOME", "/root/autodl-tmp/hf_cache")
 
 import torch
 from datasets import load_dataset
 from transformers import AutoModelForImageTextToText, AutoProcessor
 
-from build_flywheel import INSTRUCTION, clean_pool, save_image
-from run_test import DEFAULT_MAX_PIXELS, load_image, score
+from build_flywheel import clean_pool, save_image
+from common import DEFAULT_MAX_PIXELS, INSTRUCTION, load_image, score
 
 ROOT = Path(__file__).resolve().parents[1]
 
@@ -21,8 +20,8 @@ ROOT = Path(__file__).resolve().parents[1]
 def parse_args():
     ap = argparse.ArgumentParser(description="DPO 偏好对构建（拒绝采样：答错作 rejected、金标作 chosen）")
     ap.add_argument("--out", default=str(ROOT / "data" / "processed" / "chartqa"))
-    ap.add_argument("--model", default="/root/autodl-tmp/models/Qwen3-VL-4B-Instruct")
-    ap.add_argument("--adapter", default="/root/autodl-tmp/saves/sft_r2")
+    ap.add_argument("--model", default=os.environ.get("MODEL_PATH", "path/to/your/Qwen3-VL-4B-Instruct"))
+    ap.add_argument("--adapter", default=os.environ.get("ADAPTER_PATH", "path/to/your/saves/sft_r2"))
     ap.add_argument("--human", type=int, default=3000, help="human 候选数")
     ap.add_argument("--aug", type=int, default=1500, help="aug 候选数")
     ap.add_argument("--max-pairs", type=int, default=0, help="0=不设上限（冒烟可设 10）")
@@ -70,6 +69,7 @@ def main():
     (out / "images" / "dpo").mkdir(parents=True, exist_ok=True)
     pairs = []
     pair_kinds = []
+    created = []
     scanned = {"human": 0, "aug": 0}
     wrong = {"human": 0, "aug": 0}
     examples = []
@@ -81,9 +81,10 @@ def main():
             item = train[i]
             rel = f"images/dpo/{start + offset:05d}.png"
             save_image(item["image"], out / rel)
+            created.append(rel)
             images.append(load_image(out / rel, args.max_pixels))
             messages = [{"role": "user", "content": [
-                {"type": "image", "image": str(out / rel)},
+                {"type": "image"},
                 {"type": "text", "text": f"{item['query']} {INSTRUCTION}"},
             ]}]
             texts.append(processor.apply_chat_template(messages, add_generation_prompt=True, tokenize=False))
@@ -116,9 +117,9 @@ def main():
     pair_counts = {"human": pair_kinds.count("human"), "aug": pair_kinds.count("aug")}
 
     used = {p["images"][0] for p in pairs}
-    for f in (out / "images" / "dpo").glob("*.png"):
-        if f.relative_to(out).as_posix() not in used:
-            f.unlink()
+    for rel in created:
+        if rel not in used:
+            (out / rel).unlink(missing_ok=True)
 
     (out / args.file).write_text(json.dumps(pairs, ensure_ascii=False, indent=2), encoding="utf-8")
     info_path = out / "dataset_info.json"

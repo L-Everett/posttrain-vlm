@@ -1,6 +1,7 @@
 import argparse
 import json
 import math
+import os
 import time
 from pathlib import Path
 
@@ -11,8 +12,8 @@ from transformers import AutoModelForImageTextToText, AutoProcessor, BitsAndByte
 ROOT = Path(__file__).resolve().parents[1]
 INSTRUCTION = "Please answer with a single value."
 DEFAULT_MAX_PIXELS = 768 * 768
-DEFAULT_BASE = str(ROOT / "models" / "Qwen3-VL-4B-Instruct")
-DEFAULT_ADAPTER = str(ROOT / "models" / "dpo_adapter")
+DEFAULT_BASE = os.environ.get("MODEL_PATH", "path/to/your/Qwen3-VL-4B-Instruct")
+DEFAULT_ADAPTER = os.environ.get("ADAPTER_PATH", "path/to/your/dpo_adapter")
 SAMPLES_DIR = ROOT / "serving" / "demo_samples"
 FALLBACK_SMOKE = ROOT / "data" / "smoke"
 
@@ -23,8 +24,9 @@ def parse_args():
     ap.add_argument("--adapter", default=DEFAULT_ADAPTER)
     ap.add_argument("--max-pixels", type=int, default=DEFAULT_MAX_PIXELS)
     ap.add_argument("--max-new-tokens", type=int, default=64)
+    ap.add_argument("--host", default="127.0.0.1")
     ap.add_argument("--port", type=int, default=7860)
-    ap.add_argument("--no-4bit", action="store_true", help="不做量化（8G 显存会 OOM，仅供调试）")
+    ap.add_argument("--no-4bit", action="store_true", help="不做量化（bf16，需 ~8.3G 显存，仅供调试）")
     ap.add_argument("--load-4bit", action="store_true", help="用 NF4 4bit（更省显存；精度略低于默认 8bit）")
     ap.add_argument("--smoke", action="store_true", help="命令行自检对照，不开网页")
     return ap.parse_args()
@@ -74,7 +76,7 @@ class PairModel:
     def ask(self, image, question, use_adapter, use_instruction=True):
         prompt = f"{question} {INSTRUCTION}" if use_instruction else question
         messages = [{"role": "user", "content": [
-            {"type": "image", "image": "image.png"},
+            {"type": "image"},
             {"type": "text", "text": prompt},
         ]}]
         text = self.processor.apply_chat_template(messages, add_generation_prompt=True, tokenize=False)
@@ -167,7 +169,7 @@ def main():
         run_smoke(model)
         return
     demo = build_ui(model)
-    demo.launch(server_name="0.0.0.0", server_port=args.port)
+    demo.launch(server_name=args.host, server_port=args.port)
 
 
 if __name__ == "__main__":
