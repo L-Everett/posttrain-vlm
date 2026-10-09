@@ -51,7 +51,7 @@ posttrain-vlm/
 ├── configs/   # 训练配置（LoRA SFT、DPO、merge）
 ├── data/      # 数据准备脚本与数据集注册
 ├── scripts/   # 入口脚本（run_train.py / run_test.py）与数据处理
-├── serving/   # 本机 4bit 对比 demo（Gradio）；云 vLLM 为可选路径
+├── serving/   # 本机 8bit 对比 demo（Gradio）+ 云 vLLM 服务脚本
 └── docs/      # 实验记录与技术笔记
 ```
 
@@ -71,6 +71,19 @@ posttrain-vlm/
 - 浏览器打开 `http://127.0.0.1:7860`；`python serving/local_app.py --smoke` 为命令行自检
 - 推理口径与云端评测一致（同 instruction、视觉预算 768×768、左 padding、greedy）；8bit 下 6/6 测试题与云端 bf16 结果一致（见 [`results/local_demo_check.md`](results/local_demo_check.md)）
 - 模型边界：这是 ChartQA 单值问答模型，解释/闲聊会被压成一个值；勾选界面上的「自由提问模式」可观察不加指令时的行为（基座会长篇解释、微调仍偏单值）
+
+### 云端 vLLM 服务（已实测）
+
+LoRA 与基座合并（`configs/merge_lora.yaml`，8.3G）后，用 vLLM 0.31 起 OpenAI 兼容服务（`serving/serve_vllm.sh`，mm 预算与评测同源）：
+
+| 项 | 值 |
+| --- | --- |
+| 单请求 | 平均 0.10s，p50 0.11s（200 题，4090） |
+| 并发 8 | **90 req/s**，p50 77ms |
+| 显存 | 20.7G / 24G（util 0.85） |
+| 正确性 | 合并前后 87.38% vs 87.25%（±1 题）；同批题目 vLLM 78.0% vs adapter 77.5% |
+
+细节与踩坑见 [`results/vllm_serving.md`](results/vllm_serving.md)。
 
 ## 状态
 
